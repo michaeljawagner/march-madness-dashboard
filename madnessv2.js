@@ -590,6 +590,7 @@ missr|Missouri Tigers|Missouri
       text.includes("sweet 16") ||
       text.includes("sweet sixteen") ||
       text.includes("elite eight") ||
+      text.includes("elite 8") ||
       text.includes("national championship")
     ) return true;
 
@@ -657,6 +658,7 @@ missr|Missouri Tigers|Missouri
     text.includes("sweet 16") ||
     text.includes("sweet sixteen") ||
     text.includes("elite eight") ||
+    text.includes("elite 8") ||
     text.includes("national championship");
 
   if (looksLikeTournament && getFallbackRoundByDate(game?.date)) return true;
