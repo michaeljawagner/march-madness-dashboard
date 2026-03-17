@@ -1,4 +1,3 @@
-
 window.addEventListener("load", function () {
   const workerBase = "https://testing01.michaeljawagner.workers.dev/?url=";
   const boardTitleEl = document.getElementById("pm-board-title");
@@ -85,7 +84,7 @@ stjohn|St. John's Red Storm|St. John's|St Johns|Saint John's
 ucf|UCF Knights|UCF
 ucla|UCLA Bruins|UCLA
 pur|Purdue Boilermakers|Purdue
-queen|Queens Royals|Queensqueen|Queens Royals|Queens|Queens University|Queens University Royals
+queen|Queens Royals|Queens|Queens University|Queens University Royals
 cabap|California Baptist Lancers|California Baptist|Cal Baptist
 kan|Kansas Jayhawks|Kansas
 furman|Furman Paladins|Furman
@@ -480,55 +479,55 @@ missr|Missouri Tigers|Missouri
     return plateauStart === history.length - 1 ? history : history.slice(0, plateauStart + 1);
   }
 
- function primaryGameMarket(markets, espnGame) {
-  const list = Array.isArray(markets) ? markets : [];
+  function primaryGameMarket(markets, espnGame) {
+    const list = Array.isArray(markets) ? markets : [];
 
-  function key(str) {
-    return normalizeTeamLookup(str)
-      .replace(/^north carolina state$/, "nc state")
-      .replace(/^north carolina state wolfpack$/, "nc state")
-      .replace(/^connecticut$/, "uconn")
-      .replace(/^connecticut huskies$/, "uconn")
-      .replace(/^pennsylvania$/, "penn")
-      .replace(/^pennsylvania quakers$/, "penn")
-      .replace(/^queens university$/, "queens")
-      .replace(/^queens university royals$/, "queens")
-      .replace(/^long island university$/, "liu")
-      .replace(/^long island university sharks$/, "liu")
-      .replace(/^mcneese state$/, "mcneese")
-			.replace(/^mcneese state cowboys$/, "mcneese");
+    function key(str) {
+      return normalizeTeamLookup(str)
+        .replace(/^north carolina state$/, "nc state")
+        .replace(/^north carolina state wolfpack$/, "nc state")
+        .replace(/^connecticut$/, "uconn")
+        .replace(/^connecticut huskies$/, "uconn")
+        .replace(/^pennsylvania$/, "penn")
+        .replace(/^pennsylvania quakers$/, "penn")
+        .replace(/^queens university$/, "queens")
+        .replace(/^queens university royals$/, "queens")
+        .replace(/^long island university$/, "liu")
+        .replace(/^long island university sharks$/, "liu")
+        .replace(/^mcneese state$/, "mcneese")
+        .replace(/^mcneese state cowboys$/, "mcneese");
+    }
+
+    const teamA = key(espnGame?.team1 || "");
+    const teamB = key(espnGame?.team2 || "");
+
+    function looksLikeTeamMarket(m) {
+      const outcomes = parseMaybeJson(m.outcomes);
+      const prices = parseMaybeJson(m.outcomePrices);
+      if (!Array.isArray(outcomes) || outcomes.length !== 2) return false;
+      if (!Array.isArray(prices) || prices.length !== 2) return false;
+
+      const o0 = String(outcomes[0] || "").trim();
+      const o1 = String(outcomes[1] || "").trim();
+      const k0 = key(o0);
+      const k1 = key(o1);
+
+      if (!k0 || !k1) return false;
+      if (/\byes\b|\bno\b|\bover\b|\bunder\b/i.test(o0 + " " + o1)) return false;
+
+      const aMatch =
+        k0 === teamA || k1 === teamA || k0.includes(teamA) || k1.includes(teamA) || teamA.includes(k0) || teamA.includes(k1);
+
+      const bMatch =
+        k0 === teamB || k1 === teamB || k0.includes(teamB) || k1.includes(teamB) || teamB.includes(k0) || teamB.includes(k1);
+
+      return aMatch && bMatch;
+    }
+
+    const valid = list.filter(looksLikeTeamMarket);
+    valid.sort((a, b) => Number(b.volume || 0) - Number(a.volume || 0));
+    return valid[0] || null;
   }
-
-  const teamA = key(espnGame?.team1 || "");
-  const teamB = key(espnGame?.team2 || "");
-
-  function looksLikeTeamMarket(m) {
-    const outcomes = parseMaybeJson(m.outcomes);
-    const prices = parseMaybeJson(m.outcomePrices);
-    if (!Array.isArray(outcomes) || outcomes.length !== 2) return false;
-    if (!Array.isArray(prices) || prices.length !== 2) return false;
-
-    const o0 = String(outcomes[0] || "").trim();
-    const o1 = String(outcomes[1] || "").trim();
-    const k0 = key(o0);
-    const k1 = key(o1);
-
-    if (!k0 || !k1) return false;
-    if (/\byes\b|\bno\b|\bover\b|\bunder\b/i.test(o0 + " " + o1)) return false;
-
-    const aMatch =
-      k0 === teamA || k1 === teamA || k0.includes(teamA) || k1.includes(teamA) || teamA.includes(k0) || teamA.includes(k1);
-
-    const bMatch =
-      k0 === teamB || k1 === teamB || k0.includes(teamB) || k1.includes(teamB) || teamB.includes(k0) || teamB.includes(k1);
-
-    return aMatch && bMatch;
-  }
-
-  const valid = list.filter(looksLikeTeamMarket);
-  valid.sort((a, b) => Number(b.volume || 0) - Number(a.volume || 0));
-  return valid[0] || null;
-}
 
   async function getOpeningFavoriteIndex(tokenIds, startTs) {
     if (!Array.isArray(tokenIds) || tokenIds.length < 2 || !startTs) return 0;
@@ -687,15 +686,15 @@ missr|Missouri Tigers|Missouri
 
       return {
         espnId: game.id,
-        game,
+        game: game,
         title: team1 + " vs " + team2,
-        team1,
-        team2,
+        team1: team1,
+        team2: team2,
         normA: normalize(team1),
         normB: normalize(team2),
         startTime: new Date(game.date || 0).getTime(),
         round: null,
-        scoreboardDate
+        scoreboardDate: scoreboardDate
       };
     }).filter(Boolean);
   }
@@ -949,6 +948,112 @@ missr|Missouri Tigers|Missouri
     }
   }
 
+  function renderInitialEspnCard(state) {
+    const game = state.espnGame.game;
+    const comp = game?.competitions?.[0];
+    const competitors = comp?.competitors || [];
+    if (competitors.length < 2) return;
+
+    const t1 = competitors[0];
+    const t2 = competitors[1];
+    const raw1 = getTeamName(t1.team);
+    const raw2 = getTeamName(t2.team);
+    const logo1 = getTeamLogo(t1.team);
+    const logo2 = getTeamLogo(t2.team);
+    const seed1 = getEspnBracketSeed(t1.team || {});
+    const seed2 = getEspnBracketSeed(t2.team || {});
+
+    setLogo(state.dom.teamALogoEl, logo1, raw1);
+    setLogo(state.dom.teamBLogoEl, logo2, raw2);
+    setSeedText(state.dom.teamASeedEl, seed1);
+    setSeedText(state.dom.teamBSeedEl, seed2);
+
+    state.seedOrange = seed1 ? Number(seed1) : null;
+    state.seedBlue = seed2 ? Number(seed2) : null;
+
+    state.teamOrange = raw1;
+    state.teamBlue = raw2;
+
+    state.dom.teamALabelEl.textContent = state.teamOrange;
+    state.dom.teamBLabelEl.textContent = state.teamBlue;
+    state.dom.legendOrangeLabelEl.textContent = state.teamOrange;
+    state.dom.legendBlueLabelEl.textContent = state.teamBlue;
+    state.dom.probAEl.textContent = "—";
+    state.dom.probBEl.textContent = "—";
+
+    renderFallbackStatus(state, game);
+    setChartVisible(state, false);
+  }
+
+  async function hydrateCardMarket(state, usedEventSlugs) {
+    const espnGame = state.espnGame;
+
+    const eventCandidates = await fetchEventCandidates(espnGame);
+    const eventData = findBestEventForEspnGame(espnGame, eventCandidates, usedEventSlugs);
+    if (!eventData) return;
+
+    const market = primaryGameMarket(eventData.markets || [], espnGame);
+    if (!market) {
+      console.warn("⚠️ No valid market:", espnGame.title, eventData.title);
+      return;
+    }
+
+    const outcomes = parseMaybeJson(market.outcomes) || [espnGame.team1, espnGame.team2];
+    const tokenIds = parseMaybeJson(market.clobTokenIds);
+    const prices = parseMaybeJson(market.outcomePrices);
+
+    if (
+      !Array.isArray(tokenIds) || tokenIds.length < 2 ||
+      !Array.isArray(outcomes) || outcomes.length < 2 ||
+      !Array.isArray(prices) || prices.length < 2
+    ) return;
+
+    const startTsCandidate = Math.floor(
+      new Date(market.gameStartTime || eventData.startDate || espnGame.game.date).getTime() / 1000
+    );
+
+    const orangeIndex = await getOpeningFavoriteIndex(tokenIds, startTsCandidate);
+    const blueIndex = orangeIndex === 0 ? 1 : 0;
+
+    const marketTeamOrange = outcomes[orangeIndex] || "";
+    const orangePrice = Number(prices[orangeIndex]);
+    const bluePrice = Number(prices[blueIndex]);
+
+    const espnA = normalize(espnGame.team1 || "");
+    const espnB = normalize(espnGame.team2 || "");
+    const marketOrangeNorm = normalize(marketTeamOrange);
+
+    const orangeIsEspnA =
+      marketOrangeNorm === espnA ||
+      marketOrangeNorm.includes(espnA) ||
+      espnA.includes(marketOrangeNorm);
+
+    const orangeIsEspnB =
+      marketOrangeNorm === espnB ||
+      marketOrangeNorm.includes(espnB) ||
+      espnB.includes(marketOrangeNorm);
+
+    state.hasMarket = true;
+    state.title = eventData?.title || espnGame.title;
+    state.marketSlug = market.slug || null;
+    state.startTs = startTsCandidate;
+
+    if (orangeIsEspnB && !orangeIsEspnA) {
+      state.tokenOrange = tokenIds[blueIndex];
+      state.dom.probAEl.textContent = Number.isFinite(bluePrice) ? Math.round(bluePrice * 100) + "%" : "—";
+      state.dom.probBEl.textContent = Number.isFinite(orangePrice) ? Math.round(orangePrice * 100) + "%" : "—";
+    } else {
+      state.tokenOrange = tokenIds[orangeIndex];
+      state.dom.probAEl.textContent = Number.isFinite(orangePrice) ? Math.round(orangePrice * 100) + "%" : "—";
+      state.dom.probBEl.textContent = Number.isFinite(bluePrice) ? Math.round(bluePrice * 100) + "%" : "—";
+    }
+
+    if (eventData.slug) usedEventSlugs.add(String(eventData.slug));
+
+    await refreshCardScoreboard(state);
+    await refreshCardChart(state);
+  }
+
   function createChartForCard(state, history) {
     const labels = history.map(() => "");
     const dataOrange = history.map(p => Math.round(Number(p.p) * 1000) / 10);
@@ -957,7 +1062,7 @@ missr|Missouri Tigers|Missouri
     state.chart = new Chart(state.dom.canvasEl.getContext("2d"), {
       type: "line",
       data: {
-        labels,
+        labels: labels,
         datasets: [
           {
             label: state.teamOrange,
@@ -1273,72 +1378,23 @@ missr|Missouri Tigers|Missouri
       sectionsEl.appendChild(section.root);
 
       for (const espnGame of roundGames) {
-  const eventCandidates = await fetchEventCandidates(espnGame);
-
-  const eventData = findBestEventForEspnGame(espnGame, eventCandidates, usedEventSlugs);
-
-        let hasMarket = false;
-        let teamOrange = espnGame.team1;
-        let teamBlue = espnGame.team2;
-        let tokenOrange = null;
-        let orangePrice = null;
-        let bluePrice = null;
-        let marketSlug = null;
-        let startTs = null;
-
-        if (eventData) {
-          const market = primaryGameMarket(eventData.markets || [], espnGame);
-          if (eventData && !market) {
-              console.warn("⚠️ No valid market:", espnGame.title, eventData.title);
-            }
-          if (market) {
-            const outcomes = parseMaybeJson(market.outcomes) || [espnGame.team1, espnGame.team2];
-            const tokenIds = parseMaybeJson(market.clobTokenIds);
-            const prices = parseMaybeJson(market.outcomePrices);
-
-            if (
-              Array.isArray(tokenIds) && tokenIds.length >= 2 &&
-              Array.isArray(outcomes) && outcomes.length >= 2 &&
-              Array.isArray(prices) && prices.length >= 2
-            ) {
-              hasMarket = true;
-              const startTsCandidate = Math.floor(
-                new Date(market.gameStartTime || eventData.startDate || espnGame.game.date).getTime() / 1000
-              );
-
-              const orangeIndex = await getOpeningFavoriteIndex(tokenIds, startTsCandidate);
-              const blueIndex = orangeIndex === 0 ? 1 : 0;
-
-              teamOrange = outcomes[orangeIndex] || espnGame.team1;
-              teamBlue = outcomes[blueIndex] || espnGame.team2;
-              tokenOrange = tokenIds[orangeIndex];
-              orangePrice = Number(prices[orangeIndex]);
-              bluePrice = Number(prices[blueIndex]);
-              marketSlug = market.slug || null;
-              startTs = startTsCandidate;
-
-              if (eventData.slug) usedEventSlugs.add(String(eventData.slug));
-            }
-          }
-        }
-
         const dom = createCardDom();
         section.grid.appendChild(dom.root);
 
         const gameDateObj = new Date(espnGame.game.date);
         const state = {
-          title: eventData?.title || espnGame.title,
+          title: espnGame.title,
           dom: dom,
           chart: null,
-          tokenOrange: tokenOrange,
-          marketSlug: marketSlug,
-          startTs: startTs,
+          tokenOrange: null,
+          marketSlug: null,
+          startTs: null,
           lastHistoryTs: null,
           lastPregameOddsRefreshAt: null,
           finished: false,
-          hasMarket: hasMarket,
-          teamOrange: teamOrange,
-          teamBlue: teamBlue,
+          hasMarket: false,
+          teamOrange: espnGame.team1,
+          teamBlue: espnGame.team2,
           excitement: 2.5,
           seedOrange: null,
           seedBlue: null,
@@ -1350,20 +1406,14 @@ missr|Missouri Tigers|Missouri
             pad2(gameDateObj.getDate())
         };
 
-        setSeedText(dom.teamASeedEl, "");
-        setSeedText(dom.teamBSeedEl, "");
-        dom.teamALabelEl.textContent = state.teamOrange;
-        dom.teamBLabelEl.textContent = state.teamBlue;
-        dom.legendOrangeLabelEl.textContent = state.teamOrange;
-        dom.legendBlueLabelEl.textContent = state.teamBlue;
-        dom.probAEl.textContent = hasMarket && Number.isFinite(orangePrice) ? Math.round(orangePrice * 100) + "%" : "—";
-        dom.probBEl.textContent = hasMarket && Number.isFinite(bluePrice) ? Math.round(bluePrice * 100) + "%" : "—";
-        setChartVisible(state, false);
-
         allCardStates.push(state);
+        renderInitialEspnCard(state);
 
-        await refreshCardScoreboard(state);
-        setTimeout(() => refreshCardChart(state), 0);
+        setTimeout(function () {
+          hydrateCardMarket(state, usedEventSlugs).catch(function (err) {
+            console.error("Card hydrate error:", state.title, err);
+          });
+        }, 0);
       }
     }
 
