@@ -25,6 +25,7 @@ window.addEventListener("load", function () {
   let ESPN_BRACKET_SEEDS = {};
   const scoreboardCache = {};
   const allCardStates = [];
+  const HYDRATE_BATCH_SIZE = 3;
 
   const TEAM_ROWS = `
 howrd|Howard Bison|Howard
@@ -303,6 +304,23 @@ missr|Missouri Tigers|Missouri
   function setChartVisible(state, visible) {
     state.dom.chartWrapEl.classList.toggle("is-hidden", !visible);
     state.dom.chartLegendEl.classList.toggle("is-hidden", !visible);
+  }
+
+  function isStateVisible(state) {
+    return !!state?.dom?.root?.closest(".pm-section.is-active");
+  }
+
+  async function hydrateStatesInBatches(states, usedEventSlugs) {
+    for (let i = 0; i < states.length; i += HYDRATE_BATCH_SIZE) {
+      const batch = states.slice(i, i + HYDRATE_BATCH_SIZE);
+      await Promise.all(
+        batch.map(function (state) {
+          return hydrateCardMarket(state, usedEventSlugs).catch(function (err) {
+            console.error("Card hydrate error:", state.title, err);
+          });
+        })
+      );
+    }
   }
 
   function setStatusLine(state, leftText, rightText) {
@@ -1363,6 +1381,7 @@ missr|Missouri Tigers|Missouri
     boardMetaEl.textContent = "Loading tournament rounds…";
     roundTabsEl.innerHTML = "";
     sectionsEl.innerHTML = "";
+    allCardStates.length = 0;
 
     ESPN_BRACKET_SEEDS = await fetchEspnBracketSeeds();
 
@@ -1395,6 +1414,7 @@ missr|Missouri Tigers|Missouri
     buildTabs(roundsPresent);
 
     const usedEventSlugs = new Set();
+    const statesToHydrate = [];
 
     for (const roundName of roundsPresent) {
       const roundGames = tourneyGames
@@ -1437,17 +1457,14 @@ missr|Missouri Tigers|Missouri
         };
 
         allCardStates.push(state);
+        statesToHydrate.push(state);
         renderInitialEspnCard(state);
-
-        setTimeout(function () {
-          hydrateCardMarket(state, usedEventSlugs).catch(function (err) {
-            console.error("Card hydrate error:", state.title, err);
-          });
-        }, 0);
       }
     }
 
     boardMetaEl.textContent = "Showing " + tourneyGames.length + " March Madness games across " + roundsPresent.length + " rounds.";
+
+    hydrateStatesInBatches(statesToHydrate, usedEventSlugs);
   }
 
   async function refreshBoard() {
@@ -1455,17 +1472,25 @@ missr|Missouri Tigers|Missouri
     const activeDates = [...new Set(activeStates.map(s => s.scoreboardDate))];
     await Promise.all(activeDates.map(date => fetchScoreboardByDate(date, true)));
 
-    let hasLiveGame = false;
+    let hasLiveVisibleGame = false;
     const now = Date.now();
 
     for (const state of activeStates) {
       await refreshCardScoreboard(state);
 
       const phase = getGamePhase(state.espnGame.game);
+      const visible = isStateVisible(state);
+
+      if (phase === "final") {
+        if (state.hasMarket) await isCardMarketClosed(state);
+        continue;
+      }
 
       if (phase === "live") {
-        hasLiveGame = true;
-        await refreshCardChart(state);
+        if (visible) {
+          hasLiveVisibleGame = true;
+          await refreshCardChart(state);
+        }
         continue;
       }
 
@@ -1501,14 +1526,10 @@ missr|Missouri Tigers|Missouri
             console.error("Pregame odds refresh failed:", state.title, err);
           }
         }
-
-        continue;
       }
-
-      await refreshCardChart(state);
     }
 
-    const nextRefresh = hasLiveGame ? 10000 : 300000;
+    const nextRefresh = hasLiveVisibleGame ? 10000 : 300000;
     setTimeout(refreshBoard, nextRefresh);
   }
 
