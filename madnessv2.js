@@ -629,27 +629,32 @@ missr|Missouri Tigers|Missouri
   }
 
   function gameHasBracketSeedsOrTbd(game) {
-    const competitors = game?.competitions?.[0]?.competitors || [];
-    if (competitors.length < 2) return false;
+  const competitors = game?.competitions?.[0]?.competitors || [];
+  if (competitors.length < 2) return false;
 
-    const team1 = competitors[0]?.team || {};
-    const team2 = competitors[1]?.team || {};
+  // Always allow official tournament dates through.
+  // This prevents live First Four games from disappearing just because
+  // ESPN bracket seed parsing misses one of the teams.
+  if (getFallbackRoundByDate(game?.date)) return true;
 
-    const name1 = getTeamName(team1);
-    const name2 = getTeamName(team2);
+  const team1 = competitors[0]?.team || {};
+  const team2 = competitors[1]?.team || {};
 
-    const hasSeedA = !!getEspnBracketSeed(team1);
-    const hasSeedB = !!getEspnBracketSeed(team2);
+  const name1 = getTeamName(team1);
+  const name2 = getTeamName(team2);
 
-    const isTbdA = /^tbd$/i.test(name1);
-    const isTbdB = /^tbd$/i.test(name2);
+  const hasSeedA = !!getEspnBracketSeed(team1);
+  const hasSeedB = !!getEspnBracketSeed(team2);
 
-    if (hasSeedA && hasSeedB) return true;
-    if (hasSeedA && isTbdB) return true;
-    if (hasSeedB && isTbdA) return true;
+  const isTbdA = /^tbd$/i.test(name1);
+  const isTbdB = /^tbd$/i.test(name2);
 
-    return false;
-  }
+  if (hasSeedA && hasSeedB) return true;
+  if (hasSeedA && isTbdB) return true;
+  if (hasSeedB && isTbdA) return true;
+
+  return false;
+}
 
   function getTournamentDates() {
     return Object.keys(ROUND_BY_DATE);
