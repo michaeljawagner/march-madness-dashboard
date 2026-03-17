@@ -628,14 +628,9 @@ missr|Missouri Tigers|Missouri
     return getRoundFromText(game) || getFallbackRoundByDate(game.date);
   }
 
-  function gameHasBracketSeedsOrTbd(game) {
+ function gameHasBracketSeedsOrTbd(game) {
   const competitors = game?.competitions?.[0]?.competitors || [];
   if (competitors.length < 2) return false;
-
-  // Always allow official tournament dates through.
-  // This prevents live First Four games from disappearing just because
-  // ESPN bracket seed parsing misses one of the teams.
-  if (getFallbackRoundByDate(game?.date)) return true;
 
   const team1 = competitors[0]?.team || {};
   const team2 = competitors[1]?.team || {};
@@ -652,6 +647,19 @@ missr|Missouri Tigers|Missouri
   if (hasSeedA && hasSeedB) return true;
   if (hasSeedA && isTbdB) return true;
   if (hasSeedB && isTbdA) return true;
+
+  const text = extractTournamentText(game);
+  const looksLikeTournament =
+    text.includes("ncaa tournament") ||
+    text.includes("march madness") ||
+    text.includes("first four") ||
+    text.includes("final four") ||
+    text.includes("sweet 16") ||
+    text.includes("sweet sixteen") ||
+    text.includes("elite eight") ||
+    text.includes("national championship");
+
+  if (looksLikeTournament && getFallbackRoundByDate(game?.date)) return true;
 
   return false;
 }
