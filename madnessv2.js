@@ -1068,8 +1068,9 @@ function setStatusLine(state, leftText, rightText) {
               <span class="pm-team-label">Team A</span>
             </div>
           </div>
-          <div class="pm-score-wrap">
-            <div class="pm-score" style="min-width:22px;text-align:right;margin-right:2px;font-variant-numeric:tabular-nums;">–</div>
+          <div class="pm-score-wrap" style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+            <div class="pm-score" style="min-width:22px;text-align:right;font-variant-numeric:tabular-nums;">–</div>
+            <div style="width:1px;height:46px;background:#d6d6d6;opacity:1;"></div>
             <div class="pm-score-prob pm-prob-a" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
           </div>
         </div>
@@ -1082,8 +1083,9 @@ function setStatusLine(state, leftText, rightText) {
               <span class="pm-team-label">Team B</span>
             </div>
           </div>
-          <div class="pm-score-wrap">
-            <div class="pm-score" style="min-width:22px;text-align:right;margin-right:2px;font-variant-numeric:tabular-nums;">–</div>
+          <div class="pm-score-wrap" style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+            <div class="pm-score" style="min-width:22px;text-align:right;font-variant-numeric:tabular-nums;">–</div>
+            <div style="width:1px;height:46px;background:#d6d6d6;opacity:1;"></div>
             <div class="pm-score-prob pm-prob-b" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
           </div>
         </div>
