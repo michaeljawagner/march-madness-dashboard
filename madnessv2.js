@@ -1458,8 +1458,14 @@ missr|Missouri Tigers|Missouri
 
           if (chartHistory.length) {
             state.lastHistoryTs = chartHistory[chartHistory.length - 1].t;
-            setChartVisible(state, state.hasMarket || !!historicHistory);
+
+            const historicExcitement = getExcitementScore(chartHistory, state);
+            if (historicExcitement !== null) {
+              state.excitement = historicExcitement;
+            }
+
             updateChartForCard(state, chartHistory);
+            setChartVisible(state, state.hasMarket || !!historicHistory);
           }
         }
 
@@ -1472,7 +1478,9 @@ missr|Missouri Tigers|Missouri
           );
           setChartVisible(state, state.hasMarket || !!historicHistory);
         } else {
-          setLiveOrFinalCompact(state, "FINAL", "FINAL", state.hasMarket || !!historicHistory);
+          const fallbackExc = state.excitement != null ? state.excitement : 2.5;
+          setStatusLine(state, "FINAL", "EXC " + Number(fallbackExc).toFixed(1));
+          setChartVisible(state, state.hasMarket || !!historicHistory);
         }
         return;
       }
