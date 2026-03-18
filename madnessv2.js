@@ -926,7 +926,7 @@ missr|Missouri Tigers|Missouri
           </div>
           <div class="pm-score-wrap">
             <div class="pm-score">–</div>
-            <div class="pm-score-prob pm-prob-a" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
+            <div class="pm-score-prob pm-prob-a" style="min-width:56px;margin-left:8px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
           </div>
         </div>
 
@@ -940,7 +940,7 @@ missr|Missouri Tigers|Missouri
           </div>
           <div class="pm-score-wrap">
             <div class="pm-score">–</div>
-            <div class="pm-score-prob pm-prob-b" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
+            <div class="pm-score-prob pm-prob-b" style="min-width:56px;margin-left:8px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
           </div>
         </div>
       </div>
