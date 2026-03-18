@@ -51,6 +51,10 @@ mcnst|McNeese Cowboys|McNeese|McNeese State|McNeese State Cowboys
 vand|Vanderbilt Commodores|Vanderbilt
 ndkst|North Dakota State Bison|North Dakota State|N Dakota State
 mst|Michigan State Spartans|Michigan State|Michigan St
+mich|Michigan Wolverines|Michigan
+byu|BYU Cougars|BYU
+tenn|Tennessee Volunteers|Tennessee
+fla|Florida Gators|Florida
 hawaii|Hawaii Rainbow Warriors|Hawaii
 ark|Arkansas Razorbacks|Arkansas
 vcu|VCU Rams|VCU
