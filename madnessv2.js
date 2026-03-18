@@ -925,8 +925,8 @@ missr|Missouri Tigers|Missouri
             </div>
           </div>
           <div class="pm-score-wrap">
-            <div class="pm-score">–</div>
-            <div class="pm-score-prob pm-prob-a" style="min-width:56px;margin-left:8px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
+            <div class="pm-score" style="min-width:22px;text-align:right;margin-right:6px;font-variant-numeric:tabular-nums;">–</div>
+            <div class="pm-score-prob pm-prob-a" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
           </div>
         </div>
 
@@ -939,8 +939,8 @@ missr|Missouri Tigers|Missouri
             </div>
           </div>
           <div class="pm-score-wrap">
-            <div class="pm-score">–</div>
-            <div class="pm-score-prob pm-prob-b" style="min-width:56px;margin-left:8px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
+            <div class="pm-score" style="min-width:22px;text-align:right;margin-right:6px;font-variant-numeric:tabular-nums;">–</div>
+            <div class="pm-score-prob pm-prob-b" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
           </div>
         </div>
       </div>
@@ -1356,7 +1356,6 @@ missr|Missouri Tigers|Missouri
 
       if (phase === "final") {
         setLiveOrFinalCompact(state, "FINAL", "FINAL", state.hasMarket);
-        if (!state.finished) stopCard(state, "ESPN final fallback");
         return;
       }
 
@@ -1495,7 +1494,13 @@ missr|Missouri Tigers|Missouri
       const visible = isStateVisible(state);
 
       if (phase === "final") {
-        if (state.hasMarket) await isCardMarketClosed(state);
+        if (state.hasMarket && !state.chart) {
+          await refreshCardChart(state);
+        } else if (state.hasMarket) {
+          await isCardMarketClosed(state);
+        }
+
+        stopCard(state, "Final game - stop polling");
         continue;
       }
 
