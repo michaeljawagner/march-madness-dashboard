@@ -1,6 +1,6 @@
 window.addEventListener("load", function () {
   const workerBase = "https://testing01.michaeljawagner.workers.dev/?url=";
-  const excitementWorkerBase = "https://march-excitement-worker.michaeljawagner.workers.dev/";
+  const excitementWorkerBase = "https://march-excitement-worker.michaeljawagner.workers.dev";
   const boardTitleEl = document.getElementById("pm-board-title");
   const boardMetaEl = document.getElementById("pm-board-meta");
   const roundTabsEl = document.getElementById("pm-round-tabs");
