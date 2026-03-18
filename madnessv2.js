@@ -1060,33 +1060,36 @@ function setStatusLine(state, leftText, rightText) {
           <span class="pm-score-status-right"></span>
         </div>
 
-        <div class="pm-score-row">
-          <div class="pm-team">
-            <img class="pm-team-logo" alt="" style="display:none;">
-            <div class="pm-team-name">
-              <span class="pm-team-seed"></span>
-              <span class="pm-team-label">Team A</span>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:18px;align-items:start;">
+          <div>
+            <div class="pm-score-row">
+              <div class="pm-team">
+                <img class="pm-team-logo" alt="" style="display:none;">
+                <div class="pm-team-name">
+                  <span class="pm-team-seed"></span>
+                  <span class="pm-team-label">Team A</span>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="pm-score-wrap" style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
-            <div class="pm-score" style="min-width:22px;text-align:right;font-variant-numeric:tabular-nums;">–</div>
-            <div style="width:1px;height:46px;background:#d6d6d6;opacity:1;"></div>
-            <div class="pm-score-prob pm-prob-a" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
-          </div>
-        </div>
 
-        <div class="pm-score-row">
-          <div class="pm-team">
-            <img class="pm-team-logo" alt="" style="display:none;">
-            <div class="pm-team-name">
-              <span class="pm-team-seed"></span>
-              <span class="pm-team-label">Team B</span>
+            <div class="pm-score-row">
+              <div class="pm-team">
+                <img class="pm-team-logo" alt="" style="display:none;">
+                <div class="pm-team-name">
+                  <span class="pm-team-seed"></span>
+                  <span class="pm-team-label">Team B</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="pm-score-wrap" style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
-            <div class="pm-score" style="min-width:22px;text-align:right;font-variant-numeric:tabular-nums;">–</div>
-            <div style="width:1px;height:46px;background:#d6d6d6;opacity:1;"></div>
-            <div class="pm-score-prob pm-prob-b" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
+
+          <div class="pm-score-wrap" style="display:grid;grid-template-columns:44px 1px 64px;grid-template-rows:auto auto;column-gap:16px;row-gap:18px;align-items:center;flex-shrink:0;">
+            <div class="pm-score" style="grid-column:1;grid-row:1;min-width:22px;text-align:right;font-variant-numeric:tabular-nums;">–</div>
+            <div style="grid-column:2;grid-row:1 / span 2;width:1px;height:100%;background:#d6d6d6;justify-self:center;"></div>
+            <div class="pm-score-prob pm-prob-a" style="grid-column:3;grid-row:1;min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
+
+            <div class="pm-score" style="grid-column:1;grid-row:2;min-width:22px;text-align:right;font-variant-numeric:tabular-nums;">–</div>
+            <div class="pm-score-prob pm-prob-b" style="grid-column:3;grid-row:2;min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
           </div>
         </div>
       </div>
