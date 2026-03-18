@@ -1444,6 +1444,8 @@ missr|Missouri Tigers|Missouri
           fetchHistoricHistory(state.espnGameId)
         ]);
 
+        let hasHistoricChart = false;
+
         if (historicHistory && Array.isArray(historicHistory.snapshots) && historicHistory.snapshots.length) {
           const chartHistory = historicHistory.snapshots
             .map(function (snap) {
@@ -1460,29 +1462,34 @@ missr|Missouri Tigers|Missouri
             state.lastHistoryTs = chartHistory[chartHistory.length - 1].t;
 
             let historicExcitement = getExcitementScore(chartHistory, state);
+            if (historicExcitement === null && chartHistory.length >= 3) {
+              const probs = chartHistory.map(function (p) { return p.p; }).filter(Number.isFinite);
+              if (probs.length >= 3) {
+                let swing = 0;
+                for (let i = 1; i < probs.length; i++) {
+                  swing += Math.abs(probs[i] - probs[i - 1]);
+                }
+                historicExcitement = Number(
+                  Math.min(9.5, Math.max(2.5, 2.5 + swing * 8))
+                ).toFixed(1);
+              }
+            }
 
-// fallback for shorter stored histories
-if (historicExcitement === null && chartHistory.length >= 3) {
-  const probs = chartHistory.map(p => p.p).filter(Number.isFinite);
-
-  if (probs.length >= 3) {
-    let swing = 0;
-    for (let i = 1; i < probs.length; i++) {
-      swing += Math.abs(probs[i] - probs[i - 1]);
-    }
-
-    historicExcitement = Number(
-      Math.min(9.5, Math.max(2.5, 2.5 + swing * 8))
-    ).toFixed(1);
-  }
-}
-
-if (historicExcitement !== null) {
-  state.excitement = Number(historicExcitement);
-}
+            if (historicExcitement !== null) {
+              state.excitement = Number(historicExcitement);
+            }
 
             updateChartForCard(state, chartHistory);
-            setChartVisible(state, state.hasMarket || !!historicHistory);
+            hasHistoricChart = true;
+          }
+        }
+
+        if (!hasHistoricChart && state.hasMarket && state.tokenOrange && state.startTs) {
+          try {
+            await refreshCardChart(state);
+            hasHistoricChart = !!state.chart;
+          } catch (err) {
+            console.error("Final chart backfill failed:", state.title, err);
           }
         }
 
@@ -1493,11 +1500,11 @@ if (historicExcitement !== null) {
             "EXC " + Number(summary.finalExcitement).toFixed(1) +
             " • PEAK " + Number(summary.peakExcitement || summary.finalExcitement).toFixed(1)
           );
-          setChartVisible(state, state.hasMarket || !!historicHistory);
+          setChartVisible(state, hasHistoricChart || state.hasMarket);
         } else {
           const fallbackExc = state.excitement != null ? state.excitement : 2.5;
           setStatusLine(state, "FINAL", "EXC " + Number(fallbackExc).toFixed(1));
-          setChartVisible(state, state.hasMarket || !!historicHistory);
+          setChartVisible(state, hasHistoricChart || state.hasMarket);
         }
         return;
       }
@@ -1637,20 +1644,24 @@ if (historicExcitement !== null) {
       const phase = getGamePhase(state.espnGame.game);
       const visible = isStateVisible(state);
 
-     if (phase === "final") {
-  if (!state.marketHydrationDone) {
-    continue;
-  }
+      if (phase === "final") {
+        if (!state.marketHydrationDone) {
+          continue;
+        }
 
-  if (state.hasMarket && !state.chart) {
-    await refreshCardChart(state);
-  } else if (state.hasMarket) {
-    await isCardMarketClosed(state);
-  }
+        if (state.hasMarket && !state.chart) {
+          await refreshCardChart(state);
+        } else if (state.hasMarket) {
+          await isCardMarketClosed(state);
+        }
 
-  stopCard(state, "Final game - stop polling");
-  continue;
-}
+        const fallbackExc = state.excitement != null ? state.excitement : 2.5;
+        setStatusLine(state, "FINAL", "EXC " + Number(fallbackExc).toFixed(1));
+        setChartVisible(state, state.hasMarket || !!state.chart);
+
+        stopCard(state, "Final game - stop polling");
+        continue;
+      }
 
       if (phase === "live") {
         if (visible) {
