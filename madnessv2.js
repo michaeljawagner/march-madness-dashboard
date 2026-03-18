@@ -421,10 +421,41 @@ missr|Missouri Tigers|Missouri
     }
   }
 
-  function setStatusLine(state, leftText, rightText) {
-    state.dom.statusLeftEl.textContent = leftText || "";
-    state.dom.statusRightEl.textContent = rightText || "";
+ function getExcitementColor(exc) {
+  if (!Number.isFinite(exc)) return "";
+
+  // Only color above 7.5
+  if (exc < 7.5) return "";
+
+  // Normalize 7.5 → 10 range to 0 → 1
+  const t = Math.min(1, (exc - 7.5) / 2.5);
+
+  // Pale red → intense red
+  const r = 255;
+  const g = Math.round(200 - (t * 180)); // 200 → 20
+  const b = Math.round(200 - (t * 180)); // 200 → 20
+
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function setStatusLine(state, leftText, rightText) {
+  state.dom.statusLeftEl.textContent = leftText || "";
+  state.dom.statusRightEl.textContent = rightText || "";
+
+  // Apply excitement color styling
+  if (rightText && rightText.includes("EXC")) {
+    const exc = state.excitement;
+    const color = getExcitementColor(exc);
+
+    if (color) {
+      state.dom.statusRightEl.style.color = color;
+      state.dom.statusRightEl.style.fontWeight = "600";
+    } else {
+      state.dom.statusRightEl.style.color = "";
+      state.dom.statusRightEl.style.fontWeight = "";
+    }
   }
+}
 
   function renderFallbackStatus(state, game) {
     const badge = getGameBadge(game);
