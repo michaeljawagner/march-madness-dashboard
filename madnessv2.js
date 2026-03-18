@@ -422,10 +422,10 @@ missr|Missouri Tigers|Missouri
   }
 
 function getExcitementStyles(exc) {
-  if (!Number.isFinite(exc) || exc < 5) return null;
+  if (!Number.isFinite(exc) || exc < 6) return null;
 
-  // Normalize 5 → 10 range to 0 → 1
-  const t = Math.min(1, (exc - 5) / 5);
+  // Normalize 6 → 10 range to 0 → 1
+  const t = Math.min(1, (exc - 6) / 4);
 
   // Background: very pale rose → deeper accessible red
   const bgR = 255;
@@ -1069,7 +1069,7 @@ function setStatusLine(state, leftText, rightText) {
             </div>
           </div>
           <div class="pm-score-wrap">
-            <div class="pm-score" style="min-width:22px;text-align:right;margin-right:6px;font-variant-numeric:tabular-nums;">–</div>
+            <div class="pm-score" style="min-width:22px;text-align:right;margin-right:2px;font-variant-numeric:tabular-nums;">–</div>
             <div class="pm-score-prob pm-prob-a" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
           </div>
         </div>
@@ -1083,7 +1083,7 @@ function setStatusLine(state, leftText, rightText) {
             </div>
           </div>
           <div class="pm-score-wrap">
-            <div class="pm-score" style="min-width:22px;text-align:right;margin-right:6px;font-variant-numeric:tabular-nums;">–</div>
+            <div class="pm-score" style="min-width:22px;text-align:right;margin-right:2px;font-variant-numeric:tabular-nums;">–</div>
             <div class="pm-score-prob pm-prob-b" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
           </div>
         </div>
