@@ -191,6 +191,59 @@ missr|Missouri Tigers|Missouri
       .trim();
   }
 
+  const MANUAL_SEED_LOOKUP = {
+    [normalizeSeedName("Howard")]: "16",
+    [normalizeSeedName("Howard Bison")]: "16",
+    [normalizeSeedName("UMBC")]: "16",
+    [normalizeSeedName("UMBC Retrievers")]: "16",
+
+    [normalizeSeedName("NC State")]: "11",
+    [normalizeSeedName("NC State Wolfpack")]: "11",
+    [normalizeSeedName("Texas")]: "11",
+    [normalizeSeedName("Texas Longhorns")]: "11",
+
+    [normalizeSeedName("Lehigh")]: "16",
+    [normalizeSeedName("Lehigh Mountain Hawks")]: "16",
+    [normalizeSeedName("Prairie View A&M")]: "16",
+    [normalizeSeedName("Prairie View A&M Panthers")]: "16",
+
+    [normalizeSeedName("SMU")]: "11",
+    [normalizeSeedName("SMU Mustangs")]: "11",
+    [normalizeSeedName("Miami (OH)")]: "11",
+    [normalizeSeedName("Miami (OH) RedHawks")]: "11",
+    [normalizeSeedName("Miami OH")]: "11"
+  };
+
+  function getPreferredSeed(competitor) {
+    const bracketSeed = getEspnBracketSeed(competitor?.team || {});
+    if (bracketSeed) return bracketSeed;
+
+    const rawCandidates = [
+      competitor?.team?.shortDisplayName || "",
+      competitor?.team?.displayName || "",
+      competitor?.team?.name || "",
+      competitor?.team?.location || "",
+      competitor?.team?.abbreviation || ""
+    ].filter(Boolean);
+
+    for (const candidate of rawCandidates) {
+      const manualSeed = MANUAL_SEED_LOOKUP[normalizeSeedName(candidate)];
+      if (manualSeed) return manualSeed;
+    }
+
+    const scoreboardSeed =
+      competitor?.tournamentSeed ??
+      competitor?.seed ??
+      competitor?.team?.seed;
+
+    const seedNum = Number(scoreboardSeed);
+    if (Number.isFinite(seedNum) && seedNum >= 1 && seedNum <= 16) {
+      return String(seedNum);
+    }
+
+    return "";
+  }
+
   function buildSeedNameCandidates(teamObj) {
     const raw = [
       teamObj?.shortDisplayName || "",
@@ -1038,8 +1091,8 @@ missr|Missouri Tigers|Missouri
     const raw2 = getTeamName(t2.team);
     const logo1 = getTeamLogo(t1.team);
     const logo2 = getTeamLogo(t2.team);
-    const seed1 = getEspnBracketSeed(t1.team || {});
-    const seed2 = getEspnBracketSeed(t2.team || {});
+    const seed1 = getPreferredSeed(t1);
+    const seed2 = getPreferredSeed(t2);
 
     setLogo(state.dom.teamALogoEl, logo1, raw1);
     setLogo(state.dom.teamBLogoEl, logo2, raw2);
@@ -1334,8 +1387,8 @@ missr|Missouri Tigers|Missouri
       const raw2 = getTeamName(t2.team);
       const logo1 = getTeamLogo(t1.team);
       const logo2 = getTeamLogo(t2.team);
-      const seed1 = getEspnBracketSeed(t1.team || {});
-      const seed2 = getEspnBracketSeed(t2.team || {});
+      const seed1 = getPreferredSeed(t1);
+      const seed2 = getPreferredSeed(t2);
       const orangeIsT1 = teamMatchesDisplayName(state.teamOrange, raw1);
 
       if (orangeIsT1) {
