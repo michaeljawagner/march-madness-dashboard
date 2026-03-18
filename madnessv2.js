@@ -1302,8 +1302,15 @@ missr|Missouri Tigers|Missouri
   }
 
   async function refreshCardChart(state) {
-    if (!state.hasMarket || !state.tokenOrange || !state.startTs || state.finished) {
+    if (!state.hasMarket || !state.tokenOrange || !state.startTs) {
       setChartVisible(state, false);
+      return;
+    }
+
+    if (state.finished) {
+      if (state.chart) {
+        setChartVisible(state, true);
+      }
       return;
     }
 
