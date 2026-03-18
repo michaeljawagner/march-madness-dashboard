@@ -422,7 +422,16 @@ missr|Missouri Tigers|Missouri
   }
 
 function getExcitementStyles(exc) {
-  if (!Number.isFinite(exc) || exc < 6) return null;
+  if (!Number.isFinite(exc)) return null;
+
+  // Neutral pill for lower excitement so layout stays fixed
+  if (exc < 6) {
+    return {
+      background: "#f3f3f3",
+      border: "#d8d8d8",
+      text: "#8c8c8c"
+    };
+  }
 
   // Normalize 6 → 10 range to 0 → 1
   const t = Math.min(1, (exc - 6) / 4);
@@ -465,8 +474,12 @@ function setStatusLine(state, leftText, rightText) {
   el.style.lineHeight = "";
   el.style.border = "";
   el.style.boxShadow = "";
+  el.style.alignItems = "";
+  el.style.justifyContent = "";
+  el.style.minWidth = "";
+  el.style.boxSizing = "";
 
-  // Apply excitement pill styling
+  // Apply excitement pill styling to all EXC values
   if (rightText && rightText.includes("EXC")) {
     const exc = state.excitement;
     const styles = getExcitementStyles(exc);
@@ -479,9 +492,12 @@ function setStatusLine(state, leftText, rightText) {
       el.style.borderRadius = "999px";
       el.style.display = "inline-flex";
       el.style.alignItems = "center";
+      el.style.justifyContent = "center";
       el.style.lineHeight = "1";
       el.style.border = `1px solid ${styles.border}`;
       el.style.boxShadow = "0 1px 2px rgba(0,0,0,0.06)";
+      el.style.minWidth = "78px";
+      el.style.boxSizing = "border-box";
     }
   }
 }
