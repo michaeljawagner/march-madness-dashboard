@@ -251,6 +251,10 @@ missr|Missouri Tigers|Missouri
     return Math.max(min, Math.min(max, v));
   }
 
+  function floorPct1(value) {
+    return (Math.floor(Number(value || 0) * 1000) / 10).toFixed(1) + "%";
+  }
+
   function pad2(n) {
     return String(n).padStart(2, "0");
   }
@@ -1093,8 +1097,8 @@ missr|Missouri Tigers|Missouri
   // because refreshCardChart treats tokenOrange as probA / top-row team.
   state.tokenOrange = tokenIds[teamAIndex];
 
-  state.dom.probAEl.textContent = Number.isFinite(teamAPrice) ? Math.round(teamAPrice * 100) + "%" : "—";
-  state.dom.probBEl.textContent = Number.isFinite(teamBPrice) ? Math.round(teamBPrice * 100) + "%" : "—";
+  state.dom.probAEl.textContent = Number.isFinite(teamAPrice) ? floorPct1(teamAPrice) : "—";
+  state.dom.probBEl.textContent = Number.isFinite(teamBPrice) ? floorPct1(teamBPrice) : "—";
 
   if (eventData.slug) usedEventSlugs.add(String(eventData.slug));
 
@@ -1232,9 +1236,8 @@ missr|Missouri Tigers|Missouri
 
     const latestProb = Number(history[history.length - 1].p);
     if (Number.isFinite(latestProb)) {
-      const orangePct = Math.round(latestProb * 100);
-      state.dom.probAEl.textContent = orangePct + "%";
-      state.dom.probBEl.textContent = (100 - orangePct) + "%";
+      state.dom.probAEl.textContent = floorPct1(latestProb);
+      state.dom.probBEl.textContent = floorPct1(1 - latestProb);
     }
 
     if (phase !== "upcoming") {
@@ -1515,9 +1518,8 @@ missr|Missouri Tigers|Missouri
             if (history.length) {
               const latestProb = Number(history[history.length - 1].p);
               if (Number.isFinite(latestProb)) {
-                const orangePct = Math.round(latestProb * 100);
-                state.dom.probAEl.textContent = orangePct + "%";
-                state.dom.probBEl.textContent = (100 - orangePct) + "%";
+                state.dom.probAEl.textContent = floorPct1(latestProb);
+                state.dom.probBEl.textContent = floorPct1(1 - latestProb);
               }
             }
 
