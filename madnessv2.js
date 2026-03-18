@@ -251,8 +251,11 @@ missr|Missouri Tigers|Missouri
     return Math.max(min, Math.min(max, v));
   }
 
-  function floorPct1(value) {
-    return (Math.floor(Number(value || 0) * 1000) / 10).toFixed(1) + "%";
+  function smartRoundPct(value) {
+    const num = Number(value || 0) * 100;
+    const decimal = num % 1;
+    const rounded = decimal >= 0.5 ? Math.ceil(num) : Math.floor(num);
+    return rounded + "%";
   }
 
   function pad2(n) {
@@ -1097,8 +1100,8 @@ missr|Missouri Tigers|Missouri
   // because refreshCardChart treats tokenOrange as probA / top-row team.
   state.tokenOrange = tokenIds[teamAIndex];
 
-  state.dom.probAEl.textContent = Number.isFinite(teamAPrice) ? floorPct1(teamAPrice) : "—";
-  state.dom.probBEl.textContent = Number.isFinite(teamBPrice) ? floorPct1(teamBPrice) : "—";
+  state.dom.probAEl.textContent = Number.isFinite(teamAPrice) ? smartRoundPct(teamAPrice) : "—";
+  state.dom.probBEl.textContent = Number.isFinite(teamBPrice) ? smartRoundPct(teamBPrice) : "—";
 
   if (eventData.slug) usedEventSlugs.add(String(eventData.slug));
 
@@ -1236,8 +1239,8 @@ missr|Missouri Tigers|Missouri
 
     const latestProb = Number(history[history.length - 1].p);
     if (Number.isFinite(latestProb)) {
-      state.dom.probAEl.textContent = floorPct1(latestProb);
-      state.dom.probBEl.textContent = floorPct1(1 - latestProb);
+      state.dom.probAEl.textContent = smartRoundPct(latestProb);
+      state.dom.probBEl.textContent = smartRoundPct(1 - latestProb);
     }
 
     if (phase !== "upcoming") {
@@ -1518,8 +1521,8 @@ missr|Missouri Tigers|Missouri
             if (history.length) {
               const latestProb = Number(history[history.length - 1].p);
               if (Number.isFinite(latestProb)) {
-                state.dom.probAEl.textContent = floorPct1(latestProb);
-                state.dom.probBEl.textContent = floorPct1(1 - latestProb);
+                state.dom.probAEl.textContent = smartRoundPct(latestProb);
+                state.dom.probBEl.textContent = smartRoundPct(1 - latestProb);
               }
             }
 
