@@ -421,19 +421,19 @@ missr|Missouri Tigers|Missouri
     }
   }
 
- function getExcitementColor(exc) {
-  if (!Number.isFinite(exc)) return "";
+function getExcitementColor(exc) {
+  if (!Number.isFinite(exc)) return null;
 
-  // Only color above 7.5
-  if (exc < 7.5) return "";
+  // Start gradient at 5 instead of 7.5
+  if (exc < 5) return null;
 
-  // Normalize 7.5 → 10 range to 0 → 1
-  const t = Math.min(1, (exc - 7.5) / 2.5);
+  // Normalize 5 → 10 range to 0 → 1
+  const t = Math.min(1, (exc - 5) / 5);
 
   // Pale red → intense red
   const r = 255;
-  const g = Math.round(200 - (t * 180)); // 200 → 20
-  const b = Math.round(200 - (t * 180)); // 200 → 20
+  const g = Math.round(220 - (t * 200)); // 220 → 20
+  const b = Math.round(220 - (t * 200)); // 220 → 20
 
   return `rgb(${r}, ${g}, ${b})`;
 }
@@ -442,17 +442,31 @@ function setStatusLine(state, leftText, rightText) {
   state.dom.statusLeftEl.textContent = leftText || "";
   state.dom.statusRightEl.textContent = rightText || "";
 
-  // Apply excitement color styling
+  // Apply excitement pill styling
   if (rightText && rightText.includes("EXC")) {
     const exc = state.excitement;
     const color = getExcitementColor(exc);
 
     if (color) {
-      state.dom.statusRightEl.style.color = color;
-      state.dom.statusRightEl.style.fontWeight = "600";
+      const el = state.dom.statusRightEl;
+
+      el.style.background = color;
+      el.style.color = "#ffffff";
+      el.style.fontWeight = "600";
+      el.style.padding = "4px 8px";
+      el.style.borderRadius = "999px";
+      el.style.display = "inline-block";
+      el.style.lineHeight = "1";
     } else {
-      state.dom.statusRightEl.style.color = "";
-      state.dom.statusRightEl.style.fontWeight = "";
+      const el = state.dom.statusRightEl;
+
+      el.style.background = "";
+      el.style.color = "";
+      el.style.fontWeight = "";
+      el.style.padding = "";
+      el.style.borderRadius = "";
+      el.style.display = "";
+      el.style.lineHeight = "";
     }
   }
 }
