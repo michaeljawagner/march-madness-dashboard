@@ -143,6 +143,21 @@ missr|Missouri Tigers|Missouri
     }
   }
 
+  async function fetchHistoricHistory(gameId) {
+    if (!gameId) return null;
+
+    try {
+      const res = await fetch(
+        excitementWorkerBase + "/history?gameId=" + encodeURIComponent(gameId)
+      );
+      const data = await res.json();
+      return data?.ok ? data.history : null;
+    } catch (err) {
+      console.error("Historic history fetch failed:", gameId, err);
+      return null;
+    }
+  }
+
   function parseMaybeJson(value) {
     if (Array.isArray(value)) return value;
     if (typeof value !== "string") return null;
@@ -667,7 +682,7 @@ missr|Missouri Tigers|Missouri
     if (text.includes("round of 64") || text.includes("first round")) return "Round of 64";
     if (text.includes("round of 32") || text.includes("second round")) return "Round of 32";
     if (text.includes("sweet sixteen") || text.includes("sweet 16")) return "Sweet Sixteen";
-    if (text.includes("elite eight")) return "Elite Eight";
+    if (text.includes("elite eight") || text.includes("elite 8")) return "Elite Eight";
     if (text.includes("final four")) return "Final Four";
     if (text.includes("national championship") || text.includes("championship game")) return "National Championship";
     return null;
@@ -1371,7 +1386,29 @@ missr|Missouri Tigers|Missouri
       const statusText = shortDetail || description || "Live";
 
       if (phase === "final") {
-        const summary = await fetchHistoricSummary(state.espnGameId);
+        const [summary, historicHistory] = await Promise.all([
+          fetchHistoricSummary(state.espnGameId),
+          fetchHistoricHistory(state.espnGameId)
+        ]);
+
+        if (historicHistory && Array.isArray(historicHistory.snapshots) && historicHistory.snapshots.length) {
+          const chartHistory = historicHistory.snapshots
+            .map(function (snap) {
+              return {
+                t: Number(snap.historyTs || 0),
+                p: Number(snap.probA)
+              };
+            })
+            .filter(function (point) {
+              return Number.isFinite(point.t) && Number.isFinite(point.p);
+            });
+
+          if (chartHistory.length) {
+            state.lastHistoryTs = chartHistory[chartHistory.length - 1].t;
+            setChartVisible(state, state.hasMarket || !!historicHistory);
+            updateChartForCard(state, chartHistory);
+          }
+        }
 
         if (summary && summary.finalExcitement != null) {
           setStatusLine(
@@ -1380,9 +1417,9 @@ missr|Missouri Tigers|Missouri
             "EXC " + Number(summary.finalExcitement).toFixed(1) +
             " • PEAK " + Number(summary.peakExcitement || summary.finalExcitement).toFixed(1)
           );
-          setChartVisible(state, state.hasMarket);
+          setChartVisible(state, state.hasMarket || !!historicHistory);
         } else {
-          setLiveOrFinalCompact(state, "FINAL", "FINAL", state.hasMarket);
+          setLiveOrFinalCompact(state, "FINAL", "FINAL", state.hasMarket || !!historicHistory);
         }
         return;
       }
