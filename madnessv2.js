@@ -253,6 +253,13 @@ missr|Missouri Tigers|Missouri
 
   function smartRoundPct(value) {
     const num = Number(value || 0) * 100;
+
+    // Close game → show 1 decimal (40%–60%)
+    if (num >= 40 && num <= 60) {
+      return (Math.round(num * 10) / 10).toFixed(1) + "%";
+    }
+
+    // Otherwise → whole number rounding
     const decimal = num % 1;
     const rounded = decimal >= 0.5 ? Math.ceil(num) : Math.floor(num);
     return rounded + "%";
