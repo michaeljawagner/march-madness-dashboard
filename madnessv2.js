@@ -475,7 +475,7 @@ function setStatusLine(state, leftText, rightText) {
       el.style.background = styles.background;
       el.style.color = styles.text;
       el.style.fontWeight = "700";
-      el.style.padding = "5px 10px";
+      el.style.padding = "4px 10px";
       el.style.borderRadius = "999px";
       el.style.display = "inline-flex";
       el.style.alignItems = "center";
