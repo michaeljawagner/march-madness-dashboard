@@ -421,52 +421,67 @@ missr|Missouri Tigers|Missouri
     }
   }
 
-function getExcitementColor(exc) {
-  if (!Number.isFinite(exc)) return null;
-
-  // Start gradient at 5 instead of 7.5
-  if (exc < 5) return null;
+function getExcitementStyles(exc) {
+  if (!Number.isFinite(exc) || exc < 5) return null;
 
   // Normalize 5 → 10 range to 0 → 1
   const t = Math.min(1, (exc - 5) / 5);
 
-  // Pale red → intense red
-  const r = 255;
-  const g = Math.round(220 - (t * 200)); // 220 → 20
-  const b = Math.round(220 - (t * 200)); // 220 → 20
+  // Background: very pale rose → deeper accessible red
+  const bgR = 255;
+  const bgG = Math.round(240 - (t * 110)); // 240 → 130
+  const bgB = Math.round(240 - (t * 130)); // 240 → 110
 
-  return `rgb(${r}, ${g}, ${b})`;
+  // Border: medium red → dark red
+  const borderR = 180;
+  const borderG = Math.round(95 - (t * 55)); // 95 → 40
+  const borderB = Math.round(95 - (t * 55)); // 95 → 40
+
+  // Text: always dark for contrast
+  const textR = 90;
+  const textG = 20;
+  const textB = 20;
+
+  return {
+    background: `rgb(${bgR}, ${bgG}, ${bgB})`,
+    border: `rgb(${borderR}, ${borderG}, ${borderB})`,
+    text: `rgb(${textR}, ${textG}, ${textB})`
+  };
 }
 
 function setStatusLine(state, leftText, rightText) {
   state.dom.statusLeftEl.textContent = leftText || "";
   state.dom.statusRightEl.textContent = rightText || "";
 
+  const el = state.dom.statusRightEl;
+
+  // Reset styles first so non-EXC states stay clean
+  el.style.background = "";
+  el.style.color = "";
+  el.style.fontWeight = "";
+  el.style.padding = "";
+  el.style.borderRadius = "";
+  el.style.display = "";
+  el.style.lineHeight = "";
+  el.style.border = "";
+  el.style.boxShadow = "";
+
   // Apply excitement pill styling
   if (rightText && rightText.includes("EXC")) {
     const exc = state.excitement;
-    const color = getExcitementColor(exc);
+    const styles = getExcitementStyles(exc);
 
-    if (color) {
-      const el = state.dom.statusRightEl;
-
-      el.style.background = color;
-      el.style.color = "#ffffff";
-      el.style.fontWeight = "600";
-      el.style.padding = "4px 8px";
+    if (styles) {
+      el.style.background = styles.background;
+      el.style.color = styles.text;
+      el.style.fontWeight = "700";
+      el.style.padding = "5px 10px";
       el.style.borderRadius = "999px";
-      el.style.display = "inline-block";
+      el.style.display = "inline-flex";
+      el.style.alignItems = "center";
       el.style.lineHeight = "1";
-    } else {
-      const el = state.dom.statusRightEl;
-
-      el.style.background = "";
-      el.style.color = "";
-      el.style.fontWeight = "";
-      el.style.padding = "";
-      el.style.borderRadius = "";
-      el.style.display = "";
-      el.style.lineHeight = "";
+      el.style.border = `1px solid ${styles.border}`;
+      el.style.boxShadow = "0 1px 2px rgba(0,0,0,0.06)";
     }
   }
 }
