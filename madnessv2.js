@@ -1070,7 +1070,7 @@ function setStatusLine(state, leftText, rightText) {
           </div>
           <div class="pm-score-wrap">
             <div class="pm-score" style="min-width:22px;text-align:right;margin-right:2px;font-variant-numeric:tabular-nums;">–</div>
-            <div class="pm-score-prob pm-prob-a" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
+            <div class="pm-score-prob pm-prob-a" style="min-width:36px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
           </div>
         </div>
 
@@ -1084,7 +1084,7 @@ function setStatusLine(state, leftText, rightText) {
           </div>
           <div class="pm-score-wrap">
             <div class="pm-score" style="min-width:22px;text-align:right;margin-right:2px;font-variant-numeric:tabular-nums;">–</div>
-            <div class="pm-score-prob pm-prob-b" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
+            <div class="pm-score-prob pm-prob-b" style="min-width:36px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
           </div>
         </div>
       </div>
