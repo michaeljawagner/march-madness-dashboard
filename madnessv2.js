@@ -1,5 +1,6 @@
 window.addEventListener("load", function () {
   const workerBase = "https://testing01.michaeljawagner.workers.dev/?url=";
+  const excitementWorkerBase = "https://march-excitement-worker.michaeljawagner.workers.dev/";
   const boardTitleEl = document.getElementById("pm-board-title");
   const boardMetaEl = document.getElementById("pm-board-meta");
   const roundTabsEl = document.getElementById("pm-round-tabs");
@@ -125,6 +126,21 @@ missr|Missouri Tigers|Missouri
 
   function proxied(url) {
     return workerBase + encodeURIComponent(url);
+  }
+
+  async function fetchHistoricSummary(gameId) {
+    if (!gameId) return null;
+
+    try {
+      const res = await fetch(
+        excitementWorkerBase + "/summary?gameId=" + encodeURIComponent(gameId)
+      );
+      const data = await res.json();
+      return data?.ok ? data.summary : null;
+    } catch (err) {
+      console.error("Historic summary fetch failed:", gameId, err);
+      return null;
+    }
   }
 
   function parseMaybeJson(value) {
@@ -1355,7 +1371,19 @@ missr|Missouri Tigers|Missouri
       const statusText = shortDetail || description || "Live";
 
       if (phase === "final") {
-        setLiveOrFinalCompact(state, "FINAL", "FINAL", state.hasMarket);
+        const summary = await fetchHistoricSummary(state.espnGameId);
+
+        if (summary && summary.finalExcitement != null) {
+          setStatusLine(
+            state,
+            "FINAL",
+            "EXC " + Number(summary.finalExcitement).toFixed(1) +
+            " • PEAK " + Number(summary.peakExcitement || summary.finalExcitement).toFixed(1)
+          );
+          setChartVisible(state, state.hasMarket);
+        } else {
+          setLiveOrFinalCompact(state, "FINAL", "FINAL", state.hasMarket);
+        }
         return;
       }
 
