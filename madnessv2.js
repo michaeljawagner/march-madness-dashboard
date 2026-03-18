@@ -1459,10 +1459,27 @@ missr|Missouri Tigers|Missouri
           if (chartHistory.length) {
             state.lastHistoryTs = chartHistory[chartHistory.length - 1].t;
 
-            const historicExcitement = getExcitementScore(chartHistory, state);
-            if (historicExcitement !== null) {
-              state.excitement = historicExcitement;
-            }
+            let historicExcitement = getExcitementScore(chartHistory, state);
+
+// fallback for shorter stored histories
+if (historicExcitement === null && chartHistory.length >= 3) {
+  const probs = chartHistory.map(p => p.p).filter(Number.isFinite);
+
+  if (probs.length >= 3) {
+    let swing = 0;
+    for (let i = 1; i < probs.length; i++) {
+      swing += Math.abs(probs[i] - probs[i - 1]);
+    }
+
+    historicExcitement = Number(
+      Math.min(9.5, Math.max(2.5, 2.5 + swing * 8))
+    ).toFixed(1);
+  }
+}
+
+if (historicExcitement !== null) {
+  state.excitement = Number(historicExcitement);
+}
 
             updateChartForCard(state, chartHistory);
             setChartVisible(state, state.hasMarket || !!historicHistory);
