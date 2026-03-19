@@ -2041,25 +2041,39 @@ console.log("[CHART RESPONSE]", {
       const logo2 = getTeamLogo(t2.team);
       const seed1Raw = getPreferredSeed(t1);
       const seed2Raw = getPreferredSeed(t2);
-      const seed1 = seed1Raw || (teamMatchesDisplayName(state.teamOrange, raw1) ? (state.seedOrange ? String(state.seedOrange) : "") : (state.seedBlue ? String(state.seedBlue) : ""));
-      const seed2 = seed2Raw || (teamMatchesDisplayName(state.teamBlue, raw2) ? (state.seedBlue ? String(state.seedBlue) : "") : (state.seedOrange ? String(state.seedOrange) : ""));
       const orangeIsT1 = teamMatchesDisplayName(state.teamOrange, raw1);
+
+      const previousSeedForRaw1 = teamMatchesDisplayName(state.teamOrange, raw1)
+        ? (state.seedOrange ? String(state.seedOrange) : "")
+        : (teamMatchesDisplayName(state.teamBlue, raw1) ? (state.seedBlue ? String(state.seedBlue) : "") : "");
+
+      const previousSeedForRaw2 = teamMatchesDisplayName(state.teamOrange, raw2)
+        ? (state.seedOrange ? String(state.seedOrange) : "")
+        : (teamMatchesDisplayName(state.teamBlue, raw2) ? (state.seedBlue ? String(state.seedBlue) : "") : "");
+
+      const seed1 = seed1Raw || previousSeedForRaw1;
+      const seed2 = seed2Raw || previousSeedForRaw2;
 
       if (orangeIsT1) {
         setLogo(state.dom.teamALogoEl, logo1, raw1);
         setLogo(state.dom.teamBLogoEl, logo2, raw2);
-        setSeedText(state.dom.teamASeedEl, seed1 || (state.seedOrange ? String(state.seedOrange) : ""));
-        setSeedText(state.dom.teamBSeedEl, seed2 || (state.seedBlue ? String(state.seedBlue) : ""));
+        setSeedText(state.dom.teamASeedEl, seed1);
+        setSeedText(state.dom.teamBSeedEl, seed2);
         if (seed1) state.seedOrange = Number(seed1);
         if (seed2) state.seedBlue = Number(seed2);
       } else {
         setLogo(state.dom.teamALogoEl, logo2, raw2);
         setLogo(state.dom.teamBLogoEl, logo1, raw1);
-        setSeedText(state.dom.teamASeedEl, seed2 || (state.seedOrange ? String(state.seedOrange) : ""));
-        setSeedText(state.dom.teamBSeedEl, seed1 || (state.seedBlue ? String(state.seedBlue) : ""));
+        setSeedText(state.dom.teamALabelEl ? state.dom.teamASeedEl : state.dom.teamASeedEl, seed2);
+        setSeedText(state.dom.teamBSeedEl, seed1);
         if (seed2) state.seedOrange = Number(seed2);
         if (seed1) state.seedBlue = Number(seed1);
       }
+
+      if (!state.seedOrange && seed1 && orangeIsT1) state.seedOrange = Number(seed1);
+      if (!state.seedBlue && seed2 && orangeIsT1) state.seedBlue = Number(seed2);
+      if (!state.seedOrange && seed2 && !orangeIsT1) state.seedOrange = Number(seed2);
+      if (!state.seedBlue && seed1 && !orangeIsT1) state.seedBlue = Number(seed1);
 
       state.dom.teamALabelEl.textContent = state.teamOrange;
       state.dom.teamBLabelEl.textContent = state.teamBlue;
