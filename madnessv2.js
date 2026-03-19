@@ -2011,26 +2011,37 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
 
     const tourneyGames = allEspnGames
       .filter(function (g) {
-        const isTournament =
-          isMensMarchMadnessGame(g.game) ||
-          !!getFallbackRoundByDate(g.game.date);
+        const game = g.game;
 
-        if (!isTournament) return false;
+        const isTournamentText = isMensMarchMadnessGame(game);
+        const fallbackRound = getFallbackRoundByDate(game.date);
 
-        const competitors = g.game?.competitions?.[0]?.competitors || [];
-
+        const competitors = game?.competitions?.[0]?.competitors || [];
         const hasTwoTeams = competitors.length === 2;
 
-        const hasRealNames = competitors.every(function (c) {
-          const name = getTeamName(c.team);
-          return name && !/^tbd$/i.test(name);
-        });
+        const names = competitors.map(c => getTeamName(c.team));
 
-        const hasSeeds =
+        const hasRealTeams = names.every(n => n && !/^tbd$/i.test(n));
+
+        const hasAnySeed =
           getPreferredSeed(competitors[0]) ||
           getPreferredSeed(competitors[1]);
 
-        return hasTwoTeams && hasRealNames && (hasSeeds || !!getFallbackRoundByDate(g.game.date));
+        const now = Date.now();
+        const gameTime = new Date(game.date).getTime();
+
+        // 🔑 CORE FIXES:
+
+        // 1. FUTURE GAMES → allow even if seeds missing
+        if (gameTime > now) {
+          return hasTwoTeams && hasRealTeams && (isTournamentText || fallbackRound);
+        }
+
+        // 2. LIVE/PAST GAMES → REQUIRE stronger signal
+        if (!isTournamentText && !hasAnySeed) return false;
+
+        // 3. Always require valid structure
+        return hasTwoTeams && hasRealTeams;
       })
       .map(function (g) {
         g.round = getMarchMadnessRound(g.game);
