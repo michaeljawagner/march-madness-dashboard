@@ -1739,6 +1739,21 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
     console.log("Stopped", state.title, reason);
   }
 
+  function lockChart(state, history, reason) {
+    if (state.chartLocked) return;
+    state.chartLocked = true;
+    state.lockedHistory = Array.isArray(history) ? history.slice() : null;
+
+    if (state.lockedHistory && state.lockedHistory.length) {
+      updateChartForCard(state, state.lockedHistory);
+      setChartVisible(state, true);
+    }
+
+    if (reason) {
+      console.log("Chart locked", state.title, reason);
+    }
+  }
+
   async function isCardMarketClosed(state) {
     if (!state.hasMarket || !state.marketSlug) return false;
     try {
@@ -1763,12 +1778,22 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
       return;
     }
 
-    if (state.finished) {
-      if (state.chart) {
-        setChartVisible(state, true);
-      }
-      return;
-    }
+   if (state.chartLocked) {
+  if (state.lockedHistory && state.lockedHistory.length) {
+    updateChartForCard(state, state.lockedHistory);
+    setChartVisible(state, true);
+  } else if (state.chart) {
+    setChartVisible(state, true);
+  }
+  return;
+}
+
+if (state.finished) {
+  if (state.chart) {
+    setChartVisible(state, true);
+  }
+  return;
+}
 
     const phase = getGamePhase(state.espnGame.game);
     if (phase === "upcoming") setChartVisible(state, false);
@@ -1986,20 +2011,29 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
           excitement: state.excitement
         });
 
-        if (summary && summary.finalExcitement != null) {
-          setStatusLine(
-            state,
-            "FINAL",
-            "EXC " + Number(summary.finalExcitement).toFixed(1) +
-            " • PEAK " + Number(summary.peakExcitement || summary.finalExcitement).toFixed(1)
-          );
-          setChartVisible(state, hasHistoricChart || state.hasMarket);
-        } else {
-          const fallbackExc = state.excitement != null ? state.excitement : 2.5;
-          setStatusLine(state, "FINAL", "EXC " + Number(fallbackExc).toFixed(1));
-          setChartVisible(state, hasHistoricChart || state.hasMarket);
-        }
-        return;
+        const historyToLock =
+  (Array.isArray(state.latestDisplayHistory) && state.latestDisplayHistory.length && state.latestDisplayHistory) ||
+  (Array.isArray(state.latestHistory) && state.latestHistory.length && state.latestHistory) ||
+  null;
+
+if (historyToLock) {
+  lockChart(state, historyToLock, "FINAL");
+}
+
+if (summary && summary.finalExcitement != null) {
+  setStatusLine(
+    state,
+    "FINAL",
+    "EXC " + Number(summary.finalExcitement).toFixed(1) +
+    " • PEAK " + Number(summary.peakExcitement || summary.finalExcitement).toFixed(1)
+  );
+  setChartVisible(state, hasHistoricChart || state.hasMarket || !!state.chartLocked);
+} else {
+  const fallbackExc = state.excitement != null ? state.excitement : 2.5;
+  setStatusLine(state, "FINAL", "EXC " + Number(fallbackExc).toFixed(1));
+  setChartVisible(state, hasHistoricChart || state.hasMarket || !!state.chartLocked);
+}
+return;
       }
 
       setLiveOrFinalCompact(state, badgeText, statusText, state.hasMarket);
@@ -2151,6 +2185,8 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
           lastHistoryTs: null,
           latestHistory: null,
           latestDisplayHistory: null,
+          lockedHistory: null,
+          chartLocked: false,
           lastPregameOddsRefreshAt: null,
           finished: false,
           hasMarket: false,
@@ -2223,7 +2259,7 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
 
         const fallbackExc = state.excitement != null ? state.excitement : 2.5;
         setStatusLine(state, "FINAL", "EXC " + Number(fallbackExc).toFixed(1));
-        setChartVisible(state, state.hasMarket || !!state.chart);
+        setChartVisible(state, state.hasMarket || !!state.chart || !!state.chartLocked);
 
         stopCard(state, "Final game - stop polling");
         continue;
