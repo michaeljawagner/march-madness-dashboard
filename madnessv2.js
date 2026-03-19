@@ -1741,6 +1741,12 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
 
     const historyRes = await fetch(proxied(url)).then(r => r.json());
     let history = Array.isArray(historyRes.history) ? historyRes.history : [];
+    // HARD CLAMP: do not allow any data after finalizedAtTs
+    if (state.finalizedAtTs) {
+      history = history.filter(function (point) {
+        return Number(point.t) <= state.finalizedAtTs;
+      });
+    }
     if (!history.length) {
       if (phase !== "upcoming") setChartVisible(state, false);
       return;
