@@ -196,6 +196,10 @@ missr|Missouri Tigers|Missouri
       .trim();
   }
 
+  function getSeedDisplayKey(str) {
+    return normalizeSeedName(String(str || ""));
+  }
+
   const MANUAL_SEED_LOOKUP = {
     [normalizeSeedName("Howard")]: "16",
     [normalizeSeedName("Howard Bison")]: "16",
@@ -1581,16 +1585,16 @@ function setStatusLine(state, leftText, rightText) {
     state.seedBlue = seed2 ? Number(seed2) : null;
 
     state.teamOrange = raw1;
-state.teamBlue = raw2;
-state.seedMap = {};
-if (seed1) {
-  state.seedMap[normalize(raw1)] = String(seed1);
-  GLOBAL_TEAM_SEED_MAP[normalize(raw1)] = String(seed1);
-}
-if (seed2) {
-  state.seedMap[normalize(raw2)] = String(seed2);
-  GLOBAL_TEAM_SEED_MAP[normalize(raw2)] = String(seed2);
-}
+    state.teamBlue = raw2;
+    state.seedMap = {};
+    if (seed1) {
+      state.seedMap[getSeedDisplayKey(raw1)] = String(seed1);
+      GLOBAL_TEAM_SEED_MAP[getSeedDisplayKey(raw1)] = String(seed1);
+    }
+    if (seed2) {
+      state.seedMap[getSeedDisplayKey(raw2)] = String(seed2);
+      GLOBAL_TEAM_SEED_MAP[getSeedDisplayKey(raw2)] = String(seed2);
+    }
 
     state.dom.teamALabelEl.textContent = state.teamOrange;
     state.dom.teamBLabelEl.textContent = state.teamBlue;
@@ -2083,8 +2087,8 @@ const seed2Raw = getPreferredSeed(t2);
 const orangeIsT1 = teamMatchesDisplayName(state.teamOrange, raw1);
 
 const seedMap = state.seedMap || {};
-const normRaw1 = normalize(raw1);
-const normRaw2 = normalize(raw2);
+const normRaw1 = getSeedDisplayKey(raw1);
+const normRaw2 = getSeedDisplayKey(raw2);
 
 const previousSeedForRaw1 = seedMap[normRaw1] || "";
 const previousSeedForRaw2 = seedMap[normRaw2] || "";
