@@ -328,6 +328,23 @@ missr|Missouri Tigers|Missouri
     return "";
   }
 
+  function isKnownBracketTeam(teamObjOrName) {
+    if (!teamObjOrName) return false;
+
+    if (typeof teamObjOrName === "string") {
+      const key = normalizeSeedName(teamObjOrName);
+      return !!ESPN_BRACKET_SEEDS[key] || !!MANUAL_SEED_LOOKUP[key];
+    }
+
+    const candidates = buildSeedNameCandidates(teamObjOrName);
+    for (const candidate of candidates) {
+      const key = normalizeSeedName(candidate);
+      if (ESPN_BRACKET_SEEDS[key] || MANUAL_SEED_LOOKUP[key]) return true;
+    }
+
+    return false;
+  }
+
   function teamMatchesDisplayName(teamName, rawName) {
     const a = normalize(teamName);
     const b = normalize(rawName);
@@ -2018,9 +2035,18 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
 
         const competitors = game?.competitions?.[0]?.competitors || [];
         const hasTwoTeams = competitors.length === 2;
+        if (!hasTwoTeams) return false;
 
-        const names = competitors.map(c => getTeamName(c.team));
-        const hasRealTeams = names.every(n => n && !/^tbd$/i.test(n));
+        const names = competitors.map(function (c) { return getTeamName(c.team); });
+        const hasUsableNames = names.every(function (n) { return !!n; });
+        if (!hasUsableNames) return false;
+
+        const hasRealTeams = names.every(function (n) { return !/^tbd$/i.test(n); });
+        const tbdCount = names.filter(function (n) { return /^tbd$/i.test(n); }).length;
+
+        const bracketTeamCount = competitors.reduce(function (count, competitor) {
+          return count + (isKnownBracketTeam(competitor?.team || {}) ? 1 : 0);
+        }, 0);
 
         const hasAnySeed =
           getPreferredSeed(competitors[0]) ||
@@ -2028,19 +2054,32 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
 
         const phase = getGamePhase(game);
 
-        // 🚨 CRITICAL FIX: ALWAYS KEEP LIVE GAMES
+        // Strong signal always wins.
+        if (isTournamentText) {
+          return true;
+        }
+
+        // Date fallback should only admit likely bracket games.
+        if (!fallbackRound) {
+          return false;
+        }
+
+        // Live games: keep only if both teams look like bracket teams.
         if (phase === "live") {
-          return hasTwoTeams && hasRealTeams;
+          return hasRealTeams && bracketTeamCount === 2;
         }
 
-        // FUTURE GAMES
+        // Upcoming games: allow full known bracket matchups, or one-known-team vs TBD.
         if (phase === "upcoming") {
-          return hasTwoTeams && hasRealTeams && (isTournamentText || fallbackRound);
+          if (hasRealTeams) {
+            return bracketTeamCount === 2 || !!hasAnySeed;
+          }
+          return tbdCount === 1 && bracketTeamCount >= 1;
         }
 
-        // FINAL GAMES
+        // Final games: keep only convincing bracket games.
         if (phase === "final") {
-          return hasTwoTeams && hasRealTeams && (isTournamentText || hasAnySeed);
+          return hasRealTeams && (bracketTeamCount === 2 || !!hasAnySeed);
         }
 
         return false;
