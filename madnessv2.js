@@ -2012,8 +2012,8 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
     const tourneyGames = allEspnGames
       .filter(function (g) {
         return (
-          (isMensMarchMadnessGame(g.game) || !!getFallbackRoundByDate(g.game.date)) &&
-          gameHasBracketSeedsOrTbd(g.game)
+          isMensMarchMadnessGame(g.game) ||
+          !!getFallbackRoundByDate(g.game.date)
         );
       })
       .map(function (g) {
