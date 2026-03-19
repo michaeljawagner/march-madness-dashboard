@@ -24,7 +24,7 @@ window.addEventListener("load", function () {
   };
 
   let ESPN_BRACKET_SEEDS = {};
-  const TEAM_SEED_CACHE = {}; 
+  const GLOBAL_TEAM_SEED_MAP = {};
   const scoreboardCache = {};
   const allCardStates = [];
   const HYDRATE_BATCH_SIZE = 3;
@@ -1581,10 +1581,16 @@ function setStatusLine(state, leftText, rightText) {
     state.seedBlue = seed2 ? Number(seed2) : null;
 
     state.teamOrange = raw1;
-    state.teamBlue = raw2;
-    state.seedMap = {};
-    if (seed1) state.seedMap[normalize(raw1)] = String(seed1);
-    if (seed2) state.seedMap[normalize(raw2)] = String(seed2);
+state.teamBlue = raw2;
+state.seedMap = {};
+if (seed1) {
+  state.seedMap[normalize(raw1)] = String(seed1);
+  GLOBAL_TEAM_SEED_MAP[normalize(raw1)] = String(seed1);
+}
+if (seed2) {
+  state.seedMap[normalize(raw2)] = String(seed2);
+  GLOBAL_TEAM_SEED_MAP[normalize(raw2)] = String(seed2);
+}
 
     state.dom.teamALabelEl.textContent = state.teamOrange;
     state.dom.teamBLabelEl.textContent = state.teamBlue;
@@ -2082,12 +2088,20 @@ const normRaw2 = normalize(raw2);
 
 const previousSeedForRaw1 = seedMap[normRaw1] || "";
 const previousSeedForRaw2 = seedMap[normRaw2] || "";
+const globalSeedForRaw1 = GLOBAL_TEAM_SEED_MAP[normRaw1] || "";
+const globalSeedForRaw2 = GLOBAL_TEAM_SEED_MAP[normRaw2] || "";
 
-const seed1 = seed1Raw || previousSeedForRaw1 || "";
-const seed2 = seed2Raw || previousSeedForRaw2 || "";
+const seed1 = seed1Raw || previousSeedForRaw1 || globalSeedForRaw1 || "";
+const seed2 = seed2Raw || previousSeedForRaw2 || globalSeedForRaw2 || "";
 
-if (seed1) seedMap[normRaw1] = String(seed1);
-if (seed2) seedMap[normRaw2] = String(seed2);
+if (seed1) {
+  seedMap[normRaw1] = String(seed1);
+  GLOBAL_TEAM_SEED_MAP[normRaw1] = String(seed1);
+}
+if (seed2) {
+  seedMap[normRaw2] = String(seed2);
+  GLOBAL_TEAM_SEED_MAP[normRaw2] = String(seed2);
+}
 state.seedMap = seedMap;
 
 console.log("[SEED DEBUG]", {
@@ -2098,6 +2112,8 @@ console.log("[SEED DEBUG]", {
   seed2Raw,
   previousSeedForRaw1,
   previousSeedForRaw2,
+  globalSeedForRaw1,
+  globalSeedForRaw2,
   finalSeed1: seed1,
   finalSeed2: seed2,
   orangeIsT1,
@@ -2325,9 +2341,10 @@ return;
   async function buildTournamentBoard() {
     boardTitleEl.textContent = "2026 March Madness";
     boardMetaEl.textContent = "Loading tournament rounds…";
-    roundTabsEl.innerHTML = "";
-    sectionsEl.innerHTML = "";
-    allCardStates.length = 0;
+roundTabsEl.innerHTML = "";
+sectionsEl.innerHTML = "";
+allCardStates.length = 0;
+Object.keys(GLOBAL_TEAM_SEED_MAP).forEach(function (key) { delete GLOBAL_TEAM_SEED_MAP[key]; });
 
     ESPN_BRACKET_SEEDS = await fetchEspnBracketSeeds();
 
