@@ -1180,6 +1180,35 @@ function setStatusLine(state, leftText, rightText) {
     return events;
   }
 
+  async function findFreshGameAcrossDates(state, forceRefresh) {
+    const baseDate = state.scoreboardDate;
+    const dateCandidates = [
+      baseDate,
+      shiftYmd(baseDate, -1),
+      shiftYmd(baseDate, 1)
+    ];
+
+    for (const scoreboardDate of dateCandidates) {
+      const events = await fetchScoreboardByDate(scoreboardDate, forceRefresh);
+      for (const game of events) {
+        if (String(game.id) === String(state.espnGameId)) {
+          if (scoreboardDate !== state.scoreboardDate) {
+            console.log("[SCOREBOARD DATE SHIFT]", {
+              espnGameId: state.espnGameId,
+              title: state.title,
+              from: state.scoreboardDate,
+              to: scoreboardDate
+            });
+            state.scoreboardDate = scoreboardDate;
+          }
+          return game;
+        }
+      }
+    }
+
+    return null;
+  }
+
   async function fetchEspnGames(scoreboardDate) {
     const events = await fetchScoreboardByDate(scoreboardDate, false);
 
@@ -1770,15 +1799,7 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
 
   async function refreshCardScoreboard(state) {
     try {
-      const events = await fetchScoreboardByDate(state.scoreboardDate, true);
-
-      let freshGame = null;
-      for (const game of events) {
-        if (String(game.id) === String(state.espnGameId)) {
-          freshGame = game;
-          break;
-        }
-      }
+      const freshGame = await findFreshGameAcrossDates(state, true);
 
       if (!freshGame) {
         renderFallbackStatus(state, state.espnGame.game);
