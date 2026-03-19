@@ -2064,12 +2064,12 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
           return false;
         }
 
-        // Live games: keep only if both teams look like bracket teams.
+        // Live games: on known tournament dates, trust the live slate and keep valid two-team matchups.
         if (phase === "live") {
-          return hasRealTeams && bracketTeamCount === 2;
+          return hasRealTeams;
         }
 
-        // Upcoming games: allow full known bracket matchups, or one-known-team vs TBD.
+        // Upcoming games: stay strict so junk future games do not leak in.
         if (phase === "upcoming") {
           if (hasRealTeams) {
             return bracketTeamCount === 2 || !!hasAnySeed;
@@ -2077,9 +2077,9 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
           return tbdCount === 1 && bracketTeamCount >= 1;
         }
 
-        // Final games: keep only convincing bracket games.
+        // Final games: also be a bit looser on tournament dates so completed real games are not lost.
         if (phase === "final") {
-          return hasRealTeams && (bracketTeamCount === 2 || !!hasAnySeed);
+          return hasRealTeams && (bracketTeamCount === 2 || !!hasAnySeed || !!fallbackRound);
         }
 
         return false;
