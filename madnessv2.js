@@ -51,6 +51,10 @@ mcnst|McNeese Cowboys|McNeese|McNeese State|McNeese State Cowboys
 vand|Vanderbilt Commodores|Vanderbilt
 ndkst|North Dakota State Bison|North Dakota State|N Dakota State
 mst|Michigan State Spartans|Michigan State|Michigan St
+mich|Michigan Wolverines|Michigan
+byu|BYU Cougars|BYU
+tenn|Tennessee Volunteers|Tennessee
+fla|Florida Gators|Florida
 hawaii|Hawaii Rainbow Warriors|Hawaii
 ark|Arkansas Razorbacks|Arkansas
 vcu|VCU Rams|VCU
@@ -421,10 +425,86 @@ missr|Missouri Tigers|Missouri
     }
   }
 
-  function setStatusLine(state, leftText, rightText) {
-    state.dom.statusLeftEl.textContent = leftText || "";
-    state.dom.statusRightEl.textContent = rightText || "";
+function getExcitementStyles(exc) {
+  if (!Number.isFinite(exc)) return null;
+
+  // Neutral pill for lower excitement so layout stays fixed
+  if (exc < 6) {
+    return {
+      background: "#f3f3f3",
+      border: "#d8d8d8",
+      text: "#8c8c8c"
+    };
   }
+
+  // Normalize 6 → 10 range to 0 → 1
+  const t = Math.min(1, (exc - 6) / 4);
+
+  // Background: very pale rose → deeper accessible red
+  const bgR = 255;
+  const bgG = Math.round(240 - (t * 110)); // 240 → 130
+  const bgB = Math.round(240 - (t * 130)); // 240 → 110
+
+  // Border: medium red → dark red
+  const borderR = 180;
+  const borderG = Math.round(95 - (t * 55)); // 95 → 40
+  const borderB = Math.round(95 - (t * 55)); // 95 → 40
+
+  // Text: always dark for contrast
+  const textR = 90;
+  const textG = 20;
+  const textB = 20;
+
+  return {
+    background: `rgb(${bgR}, ${bgG}, ${bgB})`,
+    border: `rgb(${borderR}, ${borderG}, ${borderB})`,
+    text: `rgb(${textR}, ${textG}, ${textB})`
+  };
+}
+
+function setStatusLine(state, leftText, rightText) {
+  state.dom.statusLeftEl.textContent = leftText || "";
+  state.dom.statusRightEl.textContent = rightText || "";
+
+  const el = state.dom.statusRightEl;
+
+  // Reset styles first so non-EXC states stay clean
+  el.style.background = "";
+  el.style.color = "";
+  el.style.fontWeight = "";
+  el.style.padding = "";
+  el.style.borderRadius = "";
+  el.style.display = "";
+  el.style.lineHeight = "";
+  el.style.border = "";
+  el.style.boxShadow = "";
+  el.style.alignItems = "";
+  el.style.justifyContent = "";
+  el.style.minWidth = "";
+  el.style.boxSizing = "";
+
+  // Apply excitement pill styling to all EXC values
+  if (rightText && rightText.includes("EXC")) {
+    const exc = state.excitement;
+    const styles = getExcitementStyles(exc);
+
+    if (styles) {
+      el.style.background = styles.background;
+      el.style.color = styles.text;
+      el.style.fontWeight = "700";
+      el.style.padding = "4px 10px";
+      el.style.borderRadius = "999px";
+      el.style.display = "inline-flex";
+      el.style.alignItems = "center";
+      el.style.justifyContent = "center";
+      el.style.lineHeight = "1";
+      el.style.border = `1px solid ${styles.border}`;
+      el.style.boxShadow = "0 1px 2px rgba(0,0,0,0.06)";
+      el.style.minWidth = "78px";
+      el.style.boxSizing = "border-box";
+    }
+  }
+}
 
   function renderFallbackStatus(state, game) {
     const badge = getGameBadge(game);
@@ -1009,8 +1089,8 @@ missr|Missouri Tigers|Missouri
             </div>
           </div>
           <div class="pm-score-wrap">
-            <div class="pm-score" style="min-width:22px;text-align:right;margin-right:6px;font-variant-numeric:tabular-nums;">–</div>
-            <div class="pm-score-prob pm-prob-a" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
+            <div class="pm-score" style="min-width:22px;text-align:right;margin-right:2px;font-variant-numeric:tabular-nums;">–</div>
+            <div class="pm-score-prob pm-prob-a" style="min-width:36px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
           </div>
         </div>
 
@@ -1023,8 +1103,8 @@ missr|Missouri Tigers|Missouri
             </div>
           </div>
           <div class="pm-score-wrap">
-            <div class="pm-score" style="min-width:22px;text-align:right;margin-right:6px;font-variant-numeric:tabular-nums;">–</div>
-            <div class="pm-score-prob pm-prob-b" style="min-width:56px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
+            <div class="pm-score" style="min-width:22px;text-align:right;margin-right:2px;font-variant-numeric:tabular-nums;">–</div>
+            <div class="pm-score-prob pm-prob-b" style="min-width:36px;text-align:right;font-variant-numeric:tabular-nums;">–%</div>
           </div>
         </div>
       </div>
@@ -1119,85 +1199,85 @@ missr|Missouri Tigers|Missouri
   async function hydrateCardMarket(state, usedEventSlugs) {
   const espnGame = state.espnGame;
 
-  const eventCandidates = await fetchEventCandidates(espnGame);
-  const eventData = findBestEventForEspnGame(espnGame, eventCandidates, usedEventSlugs);
-  if (!eventData) return;
+  try {
+    const eventCandidates = await fetchEventCandidates(espnGame);
+    const eventData = findBestEventForEspnGame(espnGame, eventCandidates, usedEventSlugs);
+    if (!eventData) return;
 
-  const market = primaryGameMarket(eventData.markets || [], espnGame);
-  if (!market) {
-    console.warn("⚠️ No valid market:", espnGame.title, eventData.title);
-    return;
+    const market = primaryGameMarket(eventData.markets || [], espnGame);
+    if (!market) {
+      console.warn("⚠️ No valid market:", espnGame.title, eventData.title);
+      return;
+    }
+
+    const outcomes = parseMaybeJson(market.outcomes) || [espnGame.team1, espnGame.team2];
+    const tokenIds = parseMaybeJson(market.clobTokenIds);
+    const prices = parseMaybeJson(market.outcomePrices);
+
+    if (
+      !Array.isArray(tokenIds) || tokenIds.length < 2 ||
+      !Array.isArray(outcomes) || outcomes.length < 2 ||
+      !Array.isArray(prices) || prices.length < 2
+    ) return;
+
+    const startTsCandidate = Math.floor(
+      new Date(market.gameStartTime || eventData.startDate || espnGame.game.date).getTime() / 1000
+    );
+
+    function key(str) {
+      return normalizeTeamLookup(str)
+        .replace(/^north carolina state$/, "nc state")
+        .replace(/^north carolina state wolfpack$/, "nc state")
+        .replace(/^connecticut$/, "uconn")
+        .replace(/^connecticut huskies$/, "uconn")
+        .replace(/^pennsylvania$/, "penn")
+        .replace(/^pennsylvania quakers$/, "penn")
+        .replace(/^queens university$/, "queens")
+        .replace(/^queens university royals$/, "queens")
+        .replace(/^long island university$/, "liu")
+        .replace(/^long island university sharks$/, "liu")
+        .replace(/^mcneese state$/, "mcneese")
+        .replace(/^mcneese state cowboys$/, "mcneese");
+    }
+
+    function outcomeMatchesTeam(outcomeName, teamName) {
+      const a = key(outcomeName || "");
+      const b = key(teamName || "");
+      return !!a && !!b && (a === b || a.includes(b) || b.includes(a));
+    }
+
+    let teamAIndex = -1;
+    let teamBIndex = -1;
+
+    for (let i = 0; i < outcomes.length; i++) {
+      if (teamAIndex === -1 && outcomeMatchesTeam(outcomes[i], espnGame.team1)) teamAIndex = i;
+      if (teamBIndex === -1 && outcomeMatchesTeam(outcomes[i], espnGame.team2)) teamBIndex = i;
+    }
+
+    if (teamAIndex === -1 || teamBIndex === -1 || teamAIndex === teamBIndex) {
+      console.warn("⚠️ Outcome/team mapping failed:", espnGame.title, outcomes);
+      return;
+    }
+
+    const teamAPrice = Number(prices[teamAIndex]);
+    const teamBPrice = Number(prices[teamBIndex]);
+
+    state.hasMarket = true;
+    state.title = eventData?.title || espnGame.title;
+    state.marketSlug = market.slug || null;
+    state.startTs = startTsCandidate;
+    state.tokenOrange = tokenIds[teamAIndex];
+
+    state.dom.probAEl.textContent = Number.isFinite(teamAPrice) ? smartRoundPct(teamAPrice) : "—";
+    state.dom.probBEl.textContent = Number.isFinite(teamBPrice) ? smartRoundPct(teamBPrice) : "—";
+
+    if (eventData.slug) usedEventSlugs.add(String(eventData.slug));
+
+    await refreshCardScoreboard(state);
+    await refreshCardChart(state);
+  } finally {
+    state.marketHydrationDone = true;
   }
-
-  const outcomes = parseMaybeJson(market.outcomes) || [espnGame.team1, espnGame.team2];
-  const tokenIds = parseMaybeJson(market.clobTokenIds);
-  const prices = parseMaybeJson(market.outcomePrices);
-
-  if (
-    !Array.isArray(tokenIds) || tokenIds.length < 2 ||
-    !Array.isArray(outcomes) || outcomes.length < 2 ||
-    !Array.isArray(prices) || prices.length < 2
-  ) return;
-
-  const startTsCandidate = Math.floor(
-    new Date(market.gameStartTime || eventData.startDate || espnGame.game.date).getTime() / 1000
-  );
-
-  function key(str) {
-    return normalizeTeamLookup(str)
-      .replace(/^north carolina state$/, "nc state")
-      .replace(/^north carolina state wolfpack$/, "nc state")
-      .replace(/^connecticut$/, "uconn")
-      .replace(/^connecticut huskies$/, "uconn")
-      .replace(/^pennsylvania$/, "penn")
-      .replace(/^pennsylvania quakers$/, "penn")
-      .replace(/^queens university$/, "queens")
-      .replace(/^queens university royals$/, "queens")
-      .replace(/^long island university$/, "liu")
-      .replace(/^long island university sharks$/, "liu")
-      .replace(/^mcneese state$/, "mcneese")
-      .replace(/^mcneese state cowboys$/, "mcneese");
-  }
-
-  function outcomeMatchesTeam(outcomeName, teamName) {
-    const a = key(outcomeName || "");
-    const b = key(teamName || "");
-    return !!a && !!b && (a === b || a.includes(b) || b.includes(a));
-  }
-
-  let teamAIndex = -1;
-  let teamBIndex = -1;
-
-  for (let i = 0; i < outcomes.length; i++) {
-    if (teamAIndex === -1 && outcomeMatchesTeam(outcomes[i], espnGame.team1)) teamAIndex = i;
-    if (teamBIndex === -1 && outcomeMatchesTeam(outcomes[i], espnGame.team2)) teamBIndex = i;
-  }
-
-  if (teamAIndex === -1 || teamBIndex === -1 || teamAIndex === teamBIndex) {
-    console.warn("⚠️ Outcome/team mapping failed:", espnGame.title, outcomes);
-    return;
-  }
-
-  const teamAPrice = Number(prices[teamAIndex]);
-  const teamBPrice = Number(prices[teamBIndex]);
-
-  state.hasMarket = true;
-  state.title = eventData?.title || espnGame.title;
-  state.marketSlug = market.slug || null;
-  state.startTs = startTsCandidate;
-
-  // IMPORTANT:
-  // tokenOrange should always be the token for the DISPLAYED TOP TEAM (ESPN team1),
-  // because refreshCardChart treats tokenOrange as probA / top-row team.
-  state.tokenOrange = tokenIds[teamAIndex];
-
-  state.dom.probAEl.textContent = Number.isFinite(teamAPrice) ? smartRoundPct(teamAPrice) : "—";
-  state.dom.probBEl.textContent = Number.isFinite(teamBPrice) ? smartRoundPct(teamBPrice) : "—";
-
-  if (eventData.slug) usedEventSlugs.add(String(eventData.slug));
-
-  await refreshCardScoreboard(state);
-  await refreshCardChart(state);
 }
 
   function createChartForCard(state, history) {
@@ -1302,8 +1382,15 @@ missr|Missouri Tigers|Missouri
   }
 
   async function refreshCardChart(state) {
-    if (!state.hasMarket || !state.tokenOrange || !state.startTs || state.finished) {
+    if (!state.hasMarket || !state.tokenOrange || !state.startTs) {
       setChartVisible(state, false);
+      return;
+    }
+
+    if (state.finished) {
+      if (state.chart) {
+        setChartVisible(state, true);
+      }
       return;
     }
 
@@ -1444,6 +1531,8 @@ missr|Missouri Tigers|Missouri
           fetchHistoricHistory(state.espnGameId)
         ]);
 
+        let hasHistoricChart = false;
+
         if (historicHistory && Array.isArray(historicHistory.snapshots) && historicHistory.snapshots.length) {
           const chartHistory = historicHistory.snapshots
             .map(function (snap) {
@@ -1459,13 +1548,35 @@ missr|Missouri Tigers|Missouri
           if (chartHistory.length) {
             state.lastHistoryTs = chartHistory[chartHistory.length - 1].t;
 
-            const historicExcitement = getExcitementScore(chartHistory, state);
+            let historicExcitement = getExcitementScore(chartHistory, state);
+            if (historicExcitement === null && chartHistory.length >= 3) {
+              const probs = chartHistory.map(function (p) { return p.p; }).filter(Number.isFinite);
+              if (probs.length >= 3) {
+                let swing = 0;
+                for (let i = 1; i < probs.length; i++) {
+                  swing += Math.abs(probs[i] - probs[i - 1]);
+                }
+                historicExcitement = Number(
+                  Math.min(9.5, Math.max(2.5, 2.5 + swing * 8))
+                ).toFixed(1);
+              }
+            }
+
             if (historicExcitement !== null) {
-              state.excitement = historicExcitement;
+              state.excitement = Number(historicExcitement);
             }
 
             updateChartForCard(state, chartHistory);
-            setChartVisible(state, state.hasMarket || !!historicHistory);
+            hasHistoricChart = true;
+          }
+        }
+
+        if (!hasHistoricChart && state.hasMarket && state.tokenOrange && state.startTs) {
+          try {
+            await refreshCardChart(state);
+            hasHistoricChart = !!state.chart;
+          } catch (err) {
+            console.error("Final chart backfill failed:", state.title, err);
           }
         }
 
@@ -1476,11 +1587,11 @@ missr|Missouri Tigers|Missouri
             "EXC " + Number(summary.finalExcitement).toFixed(1) +
             " • PEAK " + Number(summary.peakExcitement || summary.finalExcitement).toFixed(1)
           );
-          setChartVisible(state, state.hasMarket || !!historicHistory);
+          setChartVisible(state, hasHistoricChart || state.hasMarket);
         } else {
           const fallbackExc = state.excitement != null ? state.excitement : 2.5;
           setStatusLine(state, "FINAL", "EXC " + Number(fallbackExc).toFixed(1));
-          setChartVisible(state, state.hasMarket || !!historicHistory);
+          setChartVisible(state, hasHistoricChart || state.hasMarket);
         }
         return;
       }
@@ -1578,10 +1689,11 @@ missr|Missouri Tigers|Missouri
           marketSlug: null,
           startTs: null,
           lastHistoryTs: null,
-          lastPregameOddsRefreshAt: null,
-          finished: false,
-          hasMarket: false,
-          teamOrange: espnGame.team1,
+         lastPregameOddsRefreshAt: null,
+            finished: false,
+            hasMarket: false,
+            marketHydrationDone: false,
+            teamOrange: espnGame.team1,
           teamBlue: espnGame.team2,
           excitement: 2.5,
           seedOrange: null,
@@ -1620,11 +1732,19 @@ missr|Missouri Tigers|Missouri
       const visible = isStateVisible(state);
 
       if (phase === "final") {
+        if (!state.marketHydrationDone) {
+          continue;
+        }
+
         if (state.hasMarket && !state.chart) {
           await refreshCardChart(state);
         } else if (state.hasMarket) {
           await isCardMarketClosed(state);
         }
+
+        const fallbackExc = state.excitement != null ? state.excitement : 2.5;
+        setStatusLine(state, "FINAL", "EXC " + Number(fallbackExc).toFixed(1));
+        setChartVisible(state, state.hasMarket || !!state.chart);
 
         stopCard(state, "Final game - stop polling");
         continue;
