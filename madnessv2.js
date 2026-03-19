@@ -675,7 +675,7 @@ missr|Missouri Tigers|Missouri
       badgeEl.style.color = badgeStyles.text;
       badgeEl.style.border = `1px solid ${badgeStyles.border}`;
       badgeEl.style.borderRadius = "999px";
-      badgeEl.style.padding = "4px 10px";
+      badgeEl.style.padding = "2px 10px";
       badgeEl.style.fontWeight = "700";
       badgeEl.style.fontSize = "14px";
       badgeEl.style.letterSpacing = "0.02em";
