@@ -1588,6 +1588,9 @@ function setStatusLine(state, leftText, rightText) {
 
     state.teamOrange = raw1;
     state.teamBlue = raw2;
+    state.seedMap = {};
+    if (seed1) state.seedMap[normalize(raw1)] = String(seed1);
+    if (seed2) state.seedMap[normalize(raw2)] = String(seed2);
 
     state.dom.teamALabelEl.textContent = state.teamOrange;
     state.dom.teamBLabelEl.textContent = state.teamBlue;
@@ -2076,24 +2079,19 @@ console.log("[CHART RESPONSE]", {
       const logo1 = getTeamLogo(t1.team);
       const logo2 = getTeamLogo(t2.team);
       const seed1Raw = getPreferredSeed(t1);
-      const seed2Raw = getPreferredSeed(t2);
-      const orangeIsT1 = teamMatchesDisplayName(state.teamOrange, raw1);
+const seed2Raw = getPreferredSeed(t2);
+const orangeIsT1 = teamMatchesDisplayName(state.teamOrange, raw1);
 
-      const previousSeedForRaw1 = teamMatchesDisplayName(state.teamOrange, raw1)
-        ? (state.seedOrange ? String(state.seedOrange) : "")
-        : (teamMatchesDisplayName(state.teamBlue, raw1) ? (state.seedBlue ? String(state.seedBlue) : "") : "");
+const seedMap = state.seedMap || {};
+const previousSeedForRaw1 = seedMap[normalize(raw1)] || "";
+const previousSeedForRaw2 = seedMap[normalize(raw2)] || "";
 
-      const previousSeedForRaw2 = teamMatchesDisplayName(state.teamOrange, raw2)
-        ? (state.seedOrange ? String(state.seedOrange) : "")
-        : (teamMatchesDisplayName(state.teamBlue, raw2) ? (state.seedBlue ? String(state.seedBlue) : "") : "");
+const seed1 = seed1Raw || previousSeedForRaw1;
+const seed2 = seed2Raw || previousSeedForRaw2;
 
-      const cachedSeed1 = getCachedTeamSeed(t1.team || raw1);
-      const cachedSeed2 = getCachedTeamSeed(t2.team || raw2);
-      const seed1 = seed1Raw || cachedSeed1 || previousSeedForRaw1;
-      const seed2 = seed2Raw || cachedSeed2 || previousSeedForRaw2;
-
-      if (seed1) rememberTeamSeed(t1.team || raw1, seed1);
-      if (seed2) rememberTeamSeed(t2.team || raw2, seed2);
+if (seed1) seedMap[normalize(raw1)] = String(seed1);
+if (seed2) seedMap[normalize(raw2)] = String(seed2);
+state.seedMap = seedMap;
 
       if (orangeIsT1) {
         setLogo(state.dom.teamALogoEl, logo1, raw1);
@@ -2111,10 +2109,13 @@ console.log("[CHART RESPONSE]", {
         if (seed1) state.seedBlue = Number(seed1);
       }
 
-      if (!state.seedOrange && seed1 && orangeIsT1) state.seedOrange = Number(seed1);
-      if (!state.seedBlue && seed2 && orangeIsT1) state.seedBlue = Number(seed2);
-      if (!state.seedOrange && seed2 && !orangeIsT1) state.seedOrange = Number(seed2);
-      if (!state.seedBlue && seed1 && !orangeIsT1) state.seedBlue = Number(seed1);
+      if (orangeIsT1) {
+  if (seed1) state.seedOrange = Number(seed1);
+  if (seed2) state.seedBlue = Number(seed2);
+} else {
+  if (seed2) state.seedOrange = Number(seed2);
+  if (seed1) state.seedBlue = Number(seed1);
+}
 
       state.dom.teamALabelEl.textContent = state.teamOrange;
       state.dom.teamBLabelEl.textContent = state.teamBlue;
@@ -2456,6 +2457,7 @@ console.log("[ROUNDS PRESENT]", roundsPresent);
           excitement: 2.5,
           seedOrange: null,
           seedBlue: null,
+          seedMap: {},
           espnGame: espnGame,
           espnGameId: espnGame.espnId,
           scoreboardDate: espnGame.scoreboardDate
