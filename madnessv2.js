@@ -1220,8 +1220,13 @@ function setStatusLine(state, leftText, rightText) {
       !Array.isArray(prices) || prices.length < 2
     ) return;
 
+    const gameTimeMs = new Date(
+      market.gameStartTime || eventData.startDate || espnGame.game.date
+    ).getTime();
+
+    // 6-day buffer to capture early-open markets
     const startTsCandidate = Math.floor(
-      new Date(market.gameStartTime || eventData.startDate || espnGame.game.date).getTime() / 1000
+      (gameTimeMs - (6 * 24 * 60 * 60 * 1000)) / 1000
     );
 
     function key(str) {
