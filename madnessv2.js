@@ -564,6 +564,18 @@ missr|Missouri Tigers|Missouri
     const fullHistory = Array.isArray(state.latestHistory) ? state.latestHistory : [];
     const displayHistory = Array.isArray(state.latestDisplayHistory) ? state.latestDisplayHistory : [];
 
+    // ALL-TIME UPSET first
+    if (
+      Number.isFinite(seedGap) &&
+      seedGap >= 10 &&
+      winnerSide &&
+      underdogSide &&
+      winnerSide === underdogSide
+    ) {
+      return { label: "ALL-TIME UPSET", tone: "red" };
+    }
+
+    // OT DRAMA after ALL-TIME UPSET
     if (clock.isOT) {
       return { label: "OT DRAMA", tone: "purple" };
     }
@@ -579,44 +591,18 @@ missr|Missouri Tigers|Missouri
       }
     }
 
-    if (winnerSide && fullHistory.length >= 3 && Number.isFinite(Number(state.displayStartTs))) {
-      const preTipPoints = fullHistory.filter(function (point) {
-        return Number(point.t) < Number(state.displayStartTs);
-      });
+    // MARKET MISS block removed
 
-      if (preTipPoints.length) {
-        const firstPoint = preTipPoints[0];
-        const winnerOpenProb = winnerSide === "A" ? Number(firstPoint.p) : (1 - Number(firstPoint.p));
-        if (Number.isFinite(winnerOpenProb) && winnerOpenProb <= 0.3) {
-          return { label: "MARKET MISS", tone: "red" };
-        }
-      }
-    }
-
-    if (
-      Number.isFinite(seedGap) &&
-      winnerSide &&
-      underdogSide &&
-      winnerSide === underdogSide
-    ) {
-      if (seedGap >= 10) {
-        return { label: "ALL-TIME UPSET", tone: "red" };
-      }
-
-      if (seedGap >= 4) {
-        return { label: "UPSET ALERT", tone: "red" };
-      }
-    }
+    // replaced UPSET/ALL-TIME UPSET block with above
 
     if (margin <= 3 && Number(state.excitement) >= 7) {
       return { label: "TIGHT FINISH", tone: "amber" };
     }
 
-    if (Number(state.excitement) <= 3.2 && margin >= 15) {
-      return { label: "BELT TO ASS", tone: "neutral" };
-    }
-
     if (Number(state.excitement) <= 3.2) {
+      if (margin >= 30) {
+        return { label: "BELT TO ASS", tone: "neutral" };
+      }
       return { label: "SNOOZE FEST", tone: "neutral" };
     }
 
@@ -630,12 +616,23 @@ missr|Missouri Tigers|Missouri
       }
     }
 
-    if (margin >= 20) {
+    if (margin >= 30) {
       return { label: "BELT TO ASS", tone: "neutral" };
     }
 
     if (Number(state.excitement) >= 8.5) {
       return { label: "PURE CHAOS", tone: "purple" };
+    }
+
+    // Insert UPSET ALERT block after PURE CHAOS
+    if (
+      Number.isFinite(seedGap) &&
+      seedGap >= 4 &&
+      winnerSide &&
+      underdogSide &&
+      winnerSide === underdogSide
+    ) {
+      return { label: "UPSET ALERT", tone: "red" };
     }
 
     return null;
