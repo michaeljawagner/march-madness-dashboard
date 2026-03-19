@@ -575,7 +575,12 @@ missr|Missouri Tigers|Missouri
       return { label: "ALL-TIME UPSET", tone: "red" };
     }
 
-    // OT DRAMA after ALL-TIME UPSET
+    // PURE CHAOS (high threshold) now #2 priority
+    if (Number(state.excitement) >= 9) {
+      return { label: "PURE CHAOS", tone: "purple" };
+    }
+
+    // OT DRAMA after PURE CHAOS
     if (clock.isOT) {
       return { label: "OT DRAMA", tone: "purple" };
     }
@@ -620,7 +625,7 @@ missr|Missouri Tigers|Missouri
       return { label: "BELT TO ASS", tone: "neutral" };
     }
 
-    if (Number(state.excitement) >= 8.5) {
+    if (Number(state.excitement) >= 8.5 && Number(state.excitement) < 9) {
       return { label: "PURE CHAOS", tone: "purple" };
     }
 
