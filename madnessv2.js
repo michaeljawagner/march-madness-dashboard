@@ -1584,8 +1584,10 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
 
     if (eventData.slug) usedEventSlugs.add(String(eventData.slug));
 
-    await refreshCardScoreboard(state);
-    await refreshCardChart(state);
+    await Promise.all([
+      refreshCardChart(state),
+      refreshCardScoreboard(state)
+    ]);
   } finally {
     state.marketHydrationDone = true;
   }
