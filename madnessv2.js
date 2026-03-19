@@ -1220,9 +1220,12 @@ function setStatusLine(state, leftText, rightText) {
       !Array.isArray(prices) || prices.length < 2
     ) return;
 
-    const startTsCandidate = Math.floor(
-      new Date(market.gameStartTime || eventData.startDate || espnGame.game.date).getTime() / 1000
-    );
+    const tipTsCandidate = Math.floor(
+  new Date(espnGame.game.date).getTime() / 1000
+);
+
+// Fetch 1 hour before tip so live charts have data ready
+const startTsCandidate = tipTsCandidate - (60 * 60);
 
     function key(str) {
       return normalizeTeamLookup(str)
@@ -1266,6 +1269,7 @@ function setStatusLine(state, leftText, rightText) {
     state.title = eventData?.title || espnGame.title;
     state.marketSlug = market.slug || null;
     state.startTs = startTsCandidate;
+    state.displayStartTs = tipTsCandidate;
     state.tokenOrange = tokenIds[teamAIndex];
 
     state.dom.probAEl.textContent = Number.isFinite(teamAPrice) ? smartRoundPct(teamAPrice) : "—";
@@ -1416,13 +1420,20 @@ function setStatusLine(state, leftText, rightText) {
     history = trimHistoryAtResolution(history);
 
     const latestProb = Number(history[history.length - 1].p);
+    const displayStartTs = Number(state.displayStartTs || 0);
+    const displayHistory = displayStartTs
+      ? history.filter(function (point) {
+          return Number(point.t) >= displayStartTs;
+        })
+      : history;
+
     if (Number.isFinite(latestProb)) {
       state.dom.probAEl.textContent = smartRoundPct(latestProb);
       state.dom.probBEl.textContent = smartRoundPct(1 - latestProb);
     }
 
     if (phase !== "upcoming") {
-      const excitement = getExcitementScore(history, state);
+      const excitement = getExcitementScore(displayHistory.length ? displayHistory : history, state);
       if (excitement !== null) state.excitement = excitement;
 
       const newestTs = history[history.length - 1].t;
@@ -1435,7 +1446,7 @@ function setStatusLine(state, leftText, rightText) {
       }
 
       state.lastHistoryTs = newestTs;
-      updateChartForCard(state, history);
+      updateChartForCard(state, displayHistory.length ? displayHistory : history);
     }
 
     if (Number.isFinite(latestProb) && (latestProb >= 0.999 || latestProb <= 0.001)) {
@@ -1688,6 +1699,7 @@ function setStatusLine(state, leftText, rightText) {
           tokenOrange: null,
           marketSlug: null,
           startTs: null,
+          displayStartTs: null,
           lastHistoryTs: null,
          lastPregameOddsRefreshAt: null,
             finished: false,
