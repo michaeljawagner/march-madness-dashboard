@@ -1139,8 +1139,21 @@ function setStatusLine(state, leftText, rightText) {
   }
 
   function getMarchMadnessRound(game) {
-    return getRoundFromText(game) || getFallbackRoundByDate(game.date);
+  const textRound = getRoundFromText(game);
+  const fallback = getFallbackRoundByDate(game.date);
+  const result = textRound || fallback;
+
+  if (!result) {
+    console.warn("[MISSING ROUND]", {
+      game: game?.name || game?.shortName || "",
+      date: game?.date || "",
+      textRound: textRound,
+      fallbackRound: fallback
+    });
   }
+
+  return result;
+}
 
  function gameHasBracketSeedsOrTbd(game) {
   const competitors = game?.competitions?.[0]?.competitors || [];
@@ -1557,12 +1570,18 @@ function setStatusLine(state, leftText, rightText) {
   }
 
   async function hydrateCardMarket(state, usedEventSlugs) {
-  const espnGame = state.espnGame;
-  setCardHiddenNoMarket(state, false);
+console.log("[HYDRATE START]", state.title);
+const espnGame = state.espnGame;
+setCardHiddenNoMarket(state, false);
 
   try {
     const eventCandidates = await fetchEventCandidates(espnGame);
-    const eventData = findBestEventForEspnGame(espnGame, eventCandidates, usedEventSlugs);
+console.log("[EVENT CANDIDATES]", {
+  title: state.title,
+  count: eventCandidates.length,
+  slugs: eventCandidates.map(function (e) { return e.slug; })
+});
+const eventData = findBestEventForEspnGame(espnGame, eventCandidates, usedEventSlugs);
     if (!eventData) {
       if (!isKnownBracketTeam(espnGame.team1) || !isKnownBracketTeam(espnGame.team2)) {
         setCardHiddenNoMarket(state, true);
@@ -1800,14 +1819,27 @@ if (state.finished) {
     else setChartVisible(state, true);
 
     const endTs = Math.floor(Date.now() / 1000);
-    const url =
-      "https://clob.polymarket.com/prices-history?market=" +
-      encodeURIComponent(state.tokenOrange) +
-      "&startTs=" + state.startTs +
-      "&endTs=" + endTs +
-      "&fidelity=0.5";
+const url =
+  "https://clob.polymarket.com/prices-history?market=" +
+  encodeURIComponent(state.tokenOrange) +
+  "&startTs=" + state.startTs +
+  "&endTs=" + endTs +
+  "&fidelity=0.5";
 
-    const historyRes = await fetch(proxied(url)).then(r => r.json());
+console.log("[CHART FETCH]", {
+  title: state.title,
+  token: state.tokenOrange,
+  startTs: state.startTs,
+  displayStartTs: state.displayStartTs,
+  now: endTs
+});
+
+const historyRes = await fetch(proxied(url)).then(r => r.json());
+
+console.log("[CHART RESPONSE]", {
+  title: state.title,
+  points: historyRes?.history?.length || 0
+});
     let history = Array.isArray(historyRes.history) ? historyRes.history : [];
     if (!history.length) {
       if (phase !== "upcoming") setChartVisible(state, false);
@@ -1856,9 +1888,18 @@ if (state.finished) {
     await isCardMarketClosed(state);
   }
 
-  async function refreshCardScoreboard(state) {
-    try {
-      const freshGame = await findFreshGameAcrossDates(state, true);
+ async function refreshCardScoreboard(state) {
+  try {
+    console.log("[SCOREBOARD REFRESH START]", state.title);
+
+    const freshGame = await findFreshGameAcrossDates(state, true);
+
+    console.log("[SCOREBOARD RESULT]", {
+      title: state.title,
+      found: !!freshGame,
+      status: freshGame?.status?.type?.state,
+      date: freshGame?.date
+    });
 
       if (!freshGame) {
         renderFallbackStatus(state, state.espnGame.game);
@@ -2079,7 +2120,16 @@ return;
 
     const tourneyGames = allEspnGames
       .filter(function (g) {
-        const game = g.game;
+  const game = g.game;
+
+  console.log("[FILTER CHECK]", {
+    title: g.title,
+    phase: getGamePhase(game),
+    roundFromText: getRoundFromText(game),
+    fallbackRound: getFallbackRoundByDate(game.date),
+    isTournament: isMensMarchMadnessGame(game)
+  });
+        
 
         // 🔒 HARD FILTER: only allow games where BOTH teams exist in our lookup
         const competitors = game?.competitions?.[0]?.competitors || [];
@@ -2150,9 +2200,11 @@ return;
       return;
     }
 
-    const roundsPresent = ROUND_ORDER.filter(roundName =>
-      tourneyGames.some(g => g.round === roundName)
-    );
+   const roundsPresent = ROUND_ORDER.filter(roundName =>
+  tourneyGames.some(g => g.round === roundName)
+);
+
+console.log("[ROUNDS PRESENT]", roundsPresent);
 
     buildTabs(roundsPresent);
 
