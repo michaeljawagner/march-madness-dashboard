@@ -2011,10 +2011,26 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
 
     const tourneyGames = allEspnGames
       .filter(function (g) {
-        return (
+        const isTournament =
           isMensMarchMadnessGame(g.game) ||
-          !!getFallbackRoundByDate(g.game.date)
-        );
+          !!getFallbackRoundByDate(g.game.date);
+
+        if (!isTournament) return false;
+
+        const competitors = g.game?.competitions?.[0]?.competitors || [];
+
+        const hasTwoTeams = competitors.length === 2;
+
+        const hasRealNames = competitors.every(function (c) {
+          const name = getTeamName(c.team);
+          return name && !/^tbd$/i.test(name);
+        });
+
+        const hasSeeds =
+          getPreferredSeed(competitors[0]) ||
+          getPreferredSeed(competitors[1]);
+
+        return hasTwoTeams && hasRealNames && (hasSeeds || !!getFallbackRoundByDate(g.game.date));
       })
       .map(function (g) {
         g.round = getMarchMadnessRound(g.game);
