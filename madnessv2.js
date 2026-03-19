@@ -1768,9 +1768,127 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
       setChartVisible(state, true);
     }
 
+    void saveLockedChartEverywhere(state);
+
     if (reason) {
       console.log("Chart locked", state.title, reason);
     }
+  }
+
+  function getLockedChartStorageKey(gameId) {
+    return "pm_locked_chart_" + String(gameId || "");
+  }
+
+  function getLockedChartPayload(state) {
+    return {
+      gameId: String(state.espnGameId),
+      title: state.title || "",
+      savedAt: Date.now(),
+      teamOrange: state.teamOrange || "",
+      teamBlue: state.teamBlue || "",
+      excitement: Number.isFinite(Number(state.excitement)) ? Number(state.excitement) : null,
+      latestHistory: Array.isArray(state.latestHistory) ? state.latestHistory : null,
+      latestDisplayHistory: Array.isArray(state.latestDisplayHistory) ? state.latestDisplayHistory : null,
+      lockedHistory: state.lockedHistory
+    };
+  }
+
+  function applyLockedChartPayload(state, payload) {
+    const lockedHistory = Array.isArray(payload?.lockedHistory) ? payload.lockedHistory : null;
+    if (!lockedHistory || !lockedHistory.length) return false;
+
+    state.chartLocked = true;
+    state.lockedHistory = lockedHistory.slice();
+    state.latestHistory = Array.isArray(payload?.latestHistory) && payload.latestHistory.length
+      ? payload.latestHistory
+      : lockedHistory.slice();
+    state.latestDisplayHistory = Array.isArray(payload?.latestDisplayHistory) && payload.latestDisplayHistory.length
+      ? payload.latestDisplayHistory
+      : lockedHistory.slice();
+
+    if (Number.isFinite(Number(payload?.excitement))) {
+      state.excitement = Number(payload.excitement);
+    }
+
+    updateChartForCard(state, state.lockedHistory);
+    setChartVisible(state, true);
+    return true;
+  }
+
+  function saveLockedChartToStorage(state) {
+    if (!state || !state.espnGameId || !state.lockedHistory || !state.lockedHistory.length) return;
+
+    try {
+      localStorage.setItem(
+        getLockedChartStorageKey(state.espnGameId),
+        JSON.stringify(getLockedChartPayload(state))
+      );
+    } catch (err) {
+      console.warn("Could not persist locked chart:", state.title, err);
+    }
+  }
+
+  async function saveLockedChartToWorker(state) {
+    if (!state || !state.espnGameId || !state.lockedHistory || !state.lockedHistory.length) return false;
+
+    try {
+      const res = await fetch(excitementWorkerBase + "/locked-chart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(getLockedChartPayload(state))
+      });
+
+      return !!res.ok;
+    } catch (err) {
+      console.warn("Could not persist locked chart remotely:", state.title, err);
+      return false;
+    }
+  }
+
+  async function saveLockedChartEverywhere(state) {
+    saveLockedChartToStorage(state);
+    await saveLockedChartToWorker(state);
+  }
+
+  function loadLockedChartFromStorage(state) {
+    if (!state || !state.espnGameId) return false;
+
+    try {
+      const raw = localStorage.getItem(getLockedChartStorageKey(state.espnGameId));
+      if (!raw) return false;
+
+      const payload = JSON.parse(raw);
+      return applyLockedChartPayload(state, payload);
+    } catch (err) {
+      console.warn("Could not restore locked chart:", state.title, err);
+      return false;
+    }
+  }
+
+  async function loadLockedChartFromWorker(state) {
+    if (!state || !state.espnGameId) return false;
+
+    try {
+      const res = await fetch(
+        excitementWorkerBase + "/locked-chart?gameId=" + encodeURIComponent(state.espnGameId)
+      );
+      if (!res.ok) return false;
+
+      const data = await res.json();
+      const payload = data?.chart || data?.lockedChart || data;
+      return applyLockedChartPayload(state, payload);
+    } catch (err) {
+      console.warn("Could not restore locked chart remotely:", state.title, err);
+      return false;
+    }
+  }
+
+  async function loadLockedChartEverywhere(state) {
+    if (await loadLockedChartFromWorker(state)) {
+      saveLockedChartToStorage(state);
+      return true;
+    }
+    return loadLockedChartFromStorage(state);
   }
 
   async function isCardMarketClosed(state) {
@@ -1793,6 +1911,9 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
 
   async function refreshCardChart(state) {
     if (!state.hasMarket || !state.tokenOrange || !state.startTs) {
+      if (await loadLockedChartEverywhere(state)) {
+        return;
+      }
       setChartVisible(state, false);
       return;
     }
@@ -1974,6 +2095,27 @@ console.log("[CHART RESPONSE]", {
           fetchHistoricSummary(state.espnGameId),
           fetchHistoricHistory(state.espnGameId)
         ]);
+
+        if (await loadLockedChartEverywhere(state)) {
+          if (summary && summary.finalExcitement != null) {
+            state.excitement = Number(summary.finalExcitement);
+          }
+
+          if (summary && summary.finalExcitement != null) {
+            setStatusLine(
+              state,
+              "FINAL",
+              "EXC " + Number(summary.finalExcitement).toFixed(1) +
+              " • PEAK " + Number(summary.peakExcitement || summary.finalExcitement).toFixed(1)
+            );
+          } else {
+            const fallbackExc = state.excitement != null ? state.excitement : 2.5;
+            setStatusLine(state, "FINAL", "EXC " + Number(fallbackExc).toFixed(1));
+          }
+
+          setChartVisible(state, true);
+          return;
+        }
 
         let hasHistoricChart = false;
         let finalChartSource = state.chart ? "existing-live-chart" : null;
