@@ -544,7 +544,7 @@ missr|Missouri Tigers|Missouri
       Number(state.excitement) >= 8.3 &&
       (clock.remainingSeconds === null || clock.remainingSeconds <= 720)
     ) {
-      return { label: "CHAOS GAME", tone: "purple" };
+      return { label: "PURE CHAOS", tone: "purple" };
     }
 
     return null;
@@ -595,16 +595,29 @@ missr|Missouri Tigers|Missouri
 
     if (
       Number.isFinite(seedGap) &&
-      seedGap >= 4 &&
       winnerSide &&
       underdogSide &&
       winnerSide === underdogSide
     ) {
-      return { label: "UPSET ALERT", tone: "red" };
+      if (seedGap >= 10) {
+        return { label: "ALL-TIME UPSET", tone: "red" };
+      }
+
+      if (seedGap >= 4) {
+        return { label: "UPSET ALERT", tone: "red" };
+      }
     }
 
     if (margin <= 3 && Number(state.excitement) >= 7) {
       return { label: "TIGHT FINISH", tone: "amber" };
+    }
+
+    if (Number(state.excitement) <= 3.2 && margin >= 15) {
+      return { label: "BELT TO ASS", tone: "neutral" };
+    }
+
+    if (Number(state.excitement) <= 3.2) {
+      return { label: "SNOOZE FEST", tone: "neutral" };
     }
 
     if (winnerSide && displayHistory.length >= 3) {
@@ -617,8 +630,12 @@ missr|Missouri Tigers|Missouri
       }
     }
 
+    if (margin >= 20) {
+      return { label: "BELT TO ASS", tone: "neutral" };
+    }
+
     if (Number(state.excitement) >= 8.5) {
-      return { label: "CHAOS GAME", tone: "purple" };
+      return { label: "PURE CHAOS", tone: "purple" };
     }
 
     return null;
@@ -660,7 +677,7 @@ missr|Missouri Tigers|Missouri
       badgeEl.style.borderRadius = "999px";
       badgeEl.style.padding = "4px 10px";
       badgeEl.style.fontWeight = "700";
-      badgeEl.style.fontSize = "11px";
+      badgeEl.style.fontSize = "14px";
       badgeEl.style.letterSpacing = "0.02em";
       badgeEl.style.textTransform = "uppercase";
       badgeEl.style.boxShadow = "0 1px 2px rgba(0,0,0,0.06)";
