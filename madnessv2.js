@@ -2047,17 +2047,29 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
       .filter(function (g) {
         const game = g.game;
 
-        const isTournamentText = isMensMarchMadnessGame(game);
+        // 🔒 HARD FILTER: only allow games where BOTH teams exist in our lookup
+        const competitors = game?.competitions?.[0]?.competitors || [];
+        if (competitors.length < 2) return false;
+
+        const team1 = getTeamName(competitors[0]?.team);
+        const team2 = getTeamName(competitors[1]?.team);
+
+       const slug1 = getPolySlug(team1);
+const slug2 = getPolySlug(team2);
+const phase = getGamePhase(game);
+
+// 🔒 HARD FILTER — but allow LIVE games through even if lookup is missing
+if (phase !== "live" && (!slug1 || !slug2)) {
+  return false;
+}
+
+// --- (the rest of the original logic remains unchanged) ---
+const isTournamentText = isMensMarchMadnessGame(game);
         const fallbackRound = getFallbackRoundByDate(game.date);
 
-        const competitors = game?.competitions?.[0]?.competitors || [];
-        const hasTwoTeams = competitors.length === 2;
-        if (!hasTwoTeams) return false;
+        // (removed duplicate competitors/names block)
 
-        const names = competitors.map(function (c) { return getTeamName(c.team); });
-        const hasUsableNames = names.every(function (n) { return !!n; });
-        if (!hasUsableNames) return false;
-
+        const names = [team1, team2];
         const hasRealTeams = names.every(function (n) { return !/^tbd$/i.test(n); });
         const tbdCount = names.filter(function (n) { return /^tbd$/i.test(n); }).length;
 
@@ -2069,7 +2081,7 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
           getPreferredSeed(competitors[0]) ||
           getPreferredSeed(competitors[1]);
 
-        const phase = getGamePhase(game);
+        
 
         // Strong signal always wins.
         if (isTournamentText) {
