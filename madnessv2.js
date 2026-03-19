@@ -699,7 +699,16 @@ missr|Missouri Tigers|Missouri
     excEl.style.minWidth = "";
     excEl.style.boxSizing = "";
 
+    const phase = getGamePhase(state.espnGame.game);
     const exc = state.excitement;
+
+    // Hide excitement pill before tip (upcoming games)
+    if (phase === "upcoming") {
+      excEl.style.display = "none";
+      return;
+    } else {
+      excEl.style.display = "inline-flex";
+    }
     const styles = getExcitementStyles(exc);
     if (styles) {
       excEl.style.background = styles.background;
