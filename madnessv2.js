@@ -1709,7 +1709,7 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
     if (phase === "upcoming") setChartVisible(state, false);
     else setChartVisible(state, true);
 
-    const endTs = Math.floor(Date.now() / 1000);
+    const endTs = state.finalizedAtTs || Math.floor(Date.now() / 1000);
     const url =
       "https://clob.polymarket.com/prices-history?market=" +
       encodeURIComponent(state.tokenOrange) +
@@ -1724,7 +1724,18 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
       return;
     }
 
-    history = trimHistoryAtResolution(history);
+        history = trimHistoryAtResolution(history);
+
+    if (phase === "final") {
+      const winnerSide = getWinnerSide(state);
+      const lastTs = Number(history[history.length - 1]?.t || endTs || Math.floor(Date.now() / 1000));
+
+      if (winnerSide === "A") {
+        history = history.concat([{ t: lastTs + 1, p: 1 }]);
+      } else if (winnerSide === "B") {
+        history = history.concat([{ t: lastTs + 1, p: 0 }]);
+      }
+    }
 
     const latestProb = Number(history[history.length - 1].p);
     const displayStartTs = Number(state.displayStartTs || 0);
@@ -1821,6 +1832,11 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
       state.dom.legendBlueLabelEl.textContent = state.teamBlue;
 
       const phase = getGamePhase(freshGame);
+      if (phase === "final") {
+        if (!state.finalizedAtTs) {
+          state.finalizedAtTs = Math.floor(Date.now() / 1000);
+        }
+      }
       const badgeText = getGameBadge(freshGame);
       const tipText = formatTip(freshGame.date);
 
@@ -2015,6 +2031,7 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
           lastHistoryTs: null,
           latestHistory: null,
           latestDisplayHistory: null,
+          finalizedAtTs: null,
          lastPregameOddsRefreshAt: null,
             finished: false,
             hasMarket: false,
