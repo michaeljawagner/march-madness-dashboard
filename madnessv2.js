@@ -585,14 +585,31 @@ missr|Missouri Tigers|Missouri
       return { label: "OT DRAMA", tone: "purple" };
     }
 
-    if (winnerSide && displayHistory.length >= 3) {
-      const winnerMinProb = displayHistory.reduce(function (min, point) {
-        const p = winnerSide === "A" ? Number(point.p) : (1 - Number(point.p));
-        return Number.isFinite(p) ? Math.min(min, p) : min;
-      }, 1);
+    if (winnerSide && displayHistory.length >= 5) {
+      let wasTrailing = false;
 
-      if (winnerMinProb <= 0.35) {
-        return { label: "COMEBACK COMPLETE", tone: "green" };
+      for (let i = 0; i < displayHistory.length; i++) {
+        const p = winnerSide === "A"
+          ? Number(displayHistory[i].p)
+          : (1 - Number(displayHistory[i].p));
+
+        if (Number.isFinite(p) && p < 0.5) {
+          wasTrailing = true;
+          break;
+        }
+      }
+
+      if (wasTrailing) {
+        const winnerMinProb = displayHistory.reduce(function (min, point) {
+          const p = winnerSide === "A"
+            ? Number(point.p)
+            : (1 - Number(point.p));
+          return Number.isFinite(p) ? Math.min(min, p) : min;
+        }, 1);
+
+        if (winnerMinProb <= 0.35) {
+          return { label: "DON'T CALL IT A COMEBACK", tone: "green" };
+        }
       }
     }
 
