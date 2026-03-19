@@ -31,8 +31,13 @@ window.addEventListener("load", function () {
   // Manual final-time overrides (ISO string or unix seconds). Used to freeze charts at the real final moment.
   // SMU vs Miami (OH): update this value if you want to manually clamp the chart earlier/later.
   const FINALIZED_AT_OVERRIDES = {
-  "401856436": "2026-03-19T02:23:00Z"
-};
+    "401856436": "2026-03-19T02:23:00Z"
+  };
+
+  // Debug specific games by ESPN id.
+  const DEBUG_GAME_IDS = {
+    "401856436": true
+  };
 
   const TEAM_ROWS = `
 howrd|Howard Bison|Howard
@@ -152,6 +157,10 @@ missr|Missouri Tigers|Missouri
     }
 
     return null;
+  }
+
+  function isDebugGame(gameId) {
+    return !!DEBUG_GAME_IDS[String(gameId)];
   }
 
   async function fetchHistoricSummary(gameId) {
@@ -1601,6 +1610,25 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
     state.displayStartTs = tipTsCandidate;
     state.tokenOrange = tokenIds[teamAIndex];
 
+    if (isDebugGame(state.espnGameId)) {
+      console.log("[DEBUG hydrateCardMarket]", {
+        espnGameId: state.espnGameId,
+        espnTitle: espnGame.title,
+        matchedEventTitle: eventData?.title || null,
+        matchedEventSlug: eventData?.slug || null,
+        marketSlug: market.slug || null,
+        outcomes: outcomes,
+        tokenIds: tokenIds,
+        prices: prices,
+        teamAIndex: teamAIndex,
+        teamBIndex: teamBIndex,
+        tokenOrange: tokenIds[teamAIndex],
+        startTs: startTsCandidate,
+        displayStartTs: tipTsCandidate,
+        finalizedAtTs: state.finalizedAtTs || null
+      });
+    }
+
     state.dom.probAEl.textContent = Number.isFinite(teamAPrice) ? smartRoundPct(teamAPrice) : "—";
     state.dom.probBEl.textContent = Number.isFinite(teamBPrice) ? smartRoundPct(teamBPrice) : "—";
 
@@ -1741,10 +1769,36 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
 
     const historyRes = await fetch(proxied(url)).then(r => r.json());
     let history = Array.isArray(historyRes.history) ? historyRes.history : [];
+
+    if (isDebugGame(state.espnGameId)) {
+      console.log("[DEBUG refreshCardChart/raw]", {
+        espnGameId: state.espnGameId,
+        title: state.title,
+        marketSlug: state.marketSlug,
+        tokenOrange: state.tokenOrange,
+        startTs: state.startTs,
+        endTs: endTs,
+        displayStartTs: state.displayStartTs || null,
+        finalizedAtTs: state.finalizedAtTs || null,
+        rawHistoryCount: history.length,
+        firstRawPoint: history[0] || null,
+        lastRawPoint: history.length ? history[history.length - 1] : null
+      });
+    }
     // HARD CLAMP: do not allow any data after finalizedAtTs
     if (state.finalizedAtTs) {
       history = history.filter(function (point) {
         return Number(point.t) <= state.finalizedAtTs;
+      });
+    }
+
+    if (isDebugGame(state.espnGameId)) {
+      console.log("[DEBUG refreshCardChart/clamped]", {
+        espnGameId: state.espnGameId,
+        finalizedAtTs: state.finalizedAtTs || null,
+        clampedHistoryCount: history.length,
+        firstClampedPoint: history[0] || null,
+        lastClampedPoint: history.length ? history[history.length - 1] : null
       });
     }
     if (!history.length) {
