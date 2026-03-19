@@ -1853,6 +1853,7 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
         ]);
 
         let hasHistoricChart = false;
+        let finalChartSource = state.chart ? "existing-live-chart" : null;
 
         if (historicHistory && Array.isArray(historicHistory.snapshots) && historicHistory.snapshots.length) {
           const chartHistory = historicHistory.snapshots
@@ -1867,8 +1868,6 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
             });
 
           if (chartHistory.length) {
-            state.lastHistoryTs = chartHistory[chartHistory.length - 1].t;
-
             let historicExcitement = getExcitementScore(chartHistory, state);
             if (historicExcitement === null && chartHistory.length >= 3) {
               const probs = chartHistory.map(function (p) { return p.p; }).filter(Number.isFinite);
@@ -1887,21 +1886,48 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
               state.excitement = Number(historicExcitement);
             }
 
-            state.latestHistory = chartHistory;
-            state.latestDisplayHistory = chartHistory;
-            updateChartForCard(state, chartHistory);
+            if (!state.chart) {
+              state.lastHistoryTs = chartHistory[chartHistory.length - 1].t;
+              state.latestHistory = chartHistory;
+              state.latestDisplayHistory = chartHistory;
+              updateChartForCard(state, chartHistory);
+              finalChartSource = "worker-historic-history";
+            } else {
+              finalChartSource = "existing-live-chart-preserved-over-worker-history";
+            }
+
             hasHistoricChart = true;
           }
         }
 
-        if (!hasHistoricChart && state.hasMarket && state.tokenOrange && state.startTs) {
+        if (!hasHistoricChart && !state.chart && state.hasMarket && state.tokenOrange && state.startTs) {
           try {
             await refreshCardChart(state);
             hasHistoricChart = !!state.chart;
+            if (hasHistoricChart) {
+              finalChartSource = "final-live-market-fallback";
+            }
           } catch (err) {
             console.error("Final chart backfill failed:", state.title, err);
           }
+        } else if (!hasHistoricChart && state.chart) {
+          hasHistoricChart = true;
+          finalChartSource = finalChartSource || "existing-live-chart";
         }
+
+        console.log("[FINAL CHART SOURCE]", {
+          espnGameId: state.espnGameId,
+          title: state.title,
+          finalChartSource: finalChartSource,
+          hasHistoricChart: hasHistoricChart,
+          hasExistingChart: !!state.chart,
+          usedWorkerHistory: finalChartSource === "worker-historic-history",
+          preservedExistingChart: finalChartSource === "existing-live-chart" || finalChartSource === "existing-live-chart-preserved-over-worker-history",
+          usedLiveFallback: finalChartSource === "final-live-market-fallback",
+          workerSnapshotCount: historicHistory?.snapshots?.length || 0,
+          lastHistoryTs: state.lastHistoryTs || null,
+          excitement: state.excitement
+        });
 
         if (summary && summary.finalExcitement != null) {
           setStatusLine(
@@ -2062,9 +2088,16 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
           continue;
         }
 
-        if (state.hasMarket && !state.chart) {
-          await refreshCardChart(state);
-        } else if (state.hasMarket) {
+        console.log("[FINAL STOP]", {
+          espnGameId: state.espnGameId,
+          title: state.title,
+          hasChart: !!state.chart,
+          hasMarket: state.hasMarket,
+          lastHistoryTs: state.lastHistoryTs || null,
+          excitement: state.excitement
+        });
+
+        if (state.hasMarket) {
           await isCardMarketClosed(state);
         }
 
