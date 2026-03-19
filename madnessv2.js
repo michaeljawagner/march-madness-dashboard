@@ -31,7 +31,7 @@ window.addEventListener("load", function () {
   // Manual final-time overrides (ISO string or unix seconds). Used to freeze charts at the real final moment.
   // SMU vs Miami (OH): update this value if you want to manually clamp the chart earlier/later.
   const FINALIZED_AT_OVERRIDES = {
-    "401856436": null
+    "401856436": "2026-03-19T03:23:00Z"
   };
 
   const TEAM_ROWS = `
