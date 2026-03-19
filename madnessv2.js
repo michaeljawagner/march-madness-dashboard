@@ -24,6 +24,7 @@ window.addEventListener("load", function () {
   };
 
   let ESPN_BRACKET_SEEDS = {};
+  const TEAM_SEED_CACHE = {}; 
   const scoreboardCache = {};
   const allCardStates = [];
   const HYDRATE_BATCH_SIZE = 3;
@@ -219,8 +220,14 @@ missr|Missouri Tigers|Missouri
   };
 
   function getPreferredSeed(competitor) {
-    const bracketSeed = getEspnBracketSeed(competitor?.team || {});
-    if (bracketSeed) return bracketSeed;
+  const bracketSeed = getEspnBracketSeed(competitor?.team || {});
+  if (bracketSeed) {
+    rememberTeamSeed(competitor?.team || {}, bracketSeed);
+    return bracketSeed;
+  }
+
+  const cachedSeed = getCachedTeamSeed(competitor?.team || {});
+  if (cachedSeed) return cachedSeed;
 
     const rawCandidates = [
       competitor?.team?.shortDisplayName || "",
@@ -327,6 +334,33 @@ missr|Missouri Tigers|Missouri
 
     return "";
   }
+
+  function getCachedTeamSeed(teamObjOrName) {
+  const candidates = typeof teamObjOrName === "string"
+    ? [teamObjOrName]
+    : buildSeedNameCandidates(teamObjOrName);
+
+  for (const candidate of candidates) {
+    const key = normalizeSeedName(candidate);
+    if (TEAM_SEED_CACHE[key]) return TEAM_SEED_CACHE[key];
+  }
+
+  return "";
+}
+
+function rememberTeamSeed(teamObjOrName, seed) {
+  const seedStr = String(seed || "").trim();
+  if (!seedStr) return;
+
+  const candidates = typeof teamObjOrName === "string"
+    ? [teamObjOrName]
+    : buildSeedNameCandidates(teamObjOrName);
+
+  for (const candidate of candidates) {
+    const key = normalizeSeedName(candidate);
+    if (key) TEAM_SEED_CACHE[key] = seedStr;
+  }
+}
 
   function isKnownBracketTeam(teamObjOrName) {
     if (!teamObjOrName) return false;
@@ -1541,6 +1575,8 @@ function setStatusLine(state, leftText, rightText) {
     const logo2 = getTeamLogo(t2.team);
     const seed1 = getPreferredSeed(t1);
     const seed2 = getPreferredSeed(t2);
+    if (seed1) rememberTeamSeed(t1.team || raw1, seed1);
+    if (seed2) rememberTeamSeed(t2.team || raw2, seed2);
 
     setLogo(state.dom.teamALogoEl, logo1, raw1);
     setLogo(state.dom.teamBLogoEl, logo2, raw2);
@@ -2051,8 +2087,13 @@ console.log("[CHART RESPONSE]", {
         ? (state.seedOrange ? String(state.seedOrange) : "")
         : (teamMatchesDisplayName(state.teamBlue, raw2) ? (state.seedBlue ? String(state.seedBlue) : "") : "");
 
-      const seed1 = seed1Raw || previousSeedForRaw1;
-      const seed2 = seed2Raw || previousSeedForRaw2;
+      const cachedSeed1 = getCachedTeamSeed(t1.team || raw1);
+      const cachedSeed2 = getCachedTeamSeed(t2.team || raw2);
+      const seed1 = seed1Raw || cachedSeed1 || previousSeedForRaw1;
+      const seed2 = seed2Raw || cachedSeed2 || previousSeedForRaw2;
+
+      if (seed1) rememberTeamSeed(t1.team || raw1, seed1);
+      if (seed2) rememberTeamSeed(t2.team || raw2, seed2);
 
       if (orangeIsT1) {
         setLogo(state.dom.teamALogoEl, logo1, raw1);
@@ -2064,7 +2105,7 @@ console.log("[CHART RESPONSE]", {
       } else {
         setLogo(state.dom.teamALogoEl, logo2, raw2);
         setLogo(state.dom.teamBLogoEl, logo1, raw1);
-        setSeedText(state.dom.teamALabelEl ? state.dom.teamASeedEl : state.dom.teamASeedEl, seed2);
+        setSeedText(state.dom.teamASeedEl, seed2);
         setSeedText(state.dom.teamBSeedEl, seed1);
         if (seed2) state.seedOrange = Number(seed2);
         if (seed1) state.seedBlue = Number(seed1);
@@ -2276,6 +2317,11 @@ return;
     allCardStates.length = 0;
 
     ESPN_BRACKET_SEEDS = await fetchEspnBracketSeeds();
+
+    Object.keys(TEAM_SEED_CACHE).forEach(function (key) { delete TEAM_SEED_CACHE[key]; });
+Object.keys(ESPN_BRACKET_SEEDS).forEach(function (key) {
+  TEAM_SEED_CACHE[key] = ESPN_BRACKET_SEEDS[key];
+});
 
     const espnResults = await Promise.all(getTournamentDates().map(fetchEspnGames));
     const allEspnGames = espnResults.flat();
