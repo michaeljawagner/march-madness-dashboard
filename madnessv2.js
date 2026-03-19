@@ -1419,6 +1419,12 @@ function setStatusLine(state, leftText, rightText) {
   function createCardDom() {
     const card = document.createElement("div");
     card.className = "pm-card";
+    card.dataset.hiddenNoMarket = "false";
+  function setCardHiddenNoMarket(state, hidden) {
+    state.dom.root.dataset.hiddenNoMarket = hidden ? "true" : "false";
+    state.dom.root.style.display = hidden ? "none" : "";
+  }
+
     card.innerHTML = `
       <div class="pm-scoreboard">
         <div class="pm-score-status">
@@ -1551,15 +1557,24 @@ function setStatusLine(state, leftText, rightText) {
 
   async function hydrateCardMarket(state, usedEventSlugs) {
   const espnGame = state.espnGame;
+  setCardHiddenNoMarket(state, false);
 
   try {
     const eventCandidates = await fetchEventCandidates(espnGame);
     const eventData = findBestEventForEspnGame(espnGame, eventCandidates, usedEventSlugs);
-    if (!eventData) return;
+    if (!eventData) {
+      if (!isKnownBracketTeam(espnGame.team1) || !isKnownBracketTeam(espnGame.team2)) {
+        setCardHiddenNoMarket(state, true);
+      }
+      return;
+    }
 
     const market = primaryGameMarket(eventData.markets || [], espnGame);
     if (!market) {
       console.warn("⚠️ No valid market:", espnGame.title, eventData.title);
+      if (!isKnownBracketTeam(espnGame.team1) || !isKnownBracketTeam(espnGame.team2)) {
+        setCardHiddenNoMarket(state, true);
+      }
       return;
     }
 
@@ -1619,6 +1634,7 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
     const teamBPrice = Number(prices[teamBIndex]);
 
     state.hasMarket = true;
+    setCardHiddenNoMarket(state, false);
     state.title = eventData?.title || espnGame.title;
     state.marketSlug = market.slug || null;
     state.startTs = startTsCandidate;
