@@ -28,6 +28,12 @@ window.addEventListener("load", function () {
   const allCardStates = [];
   const HYDRATE_BATCH_SIZE = 3;
 
+  // Manual final-time overrides (ISO string or unix seconds). Used to freeze charts at the real final moment.
+  // SMU vs Miami (OH): update this value if you want to manually clamp the chart earlier/later.
+  const FINALIZED_AT_OVERRIDES = {
+    "401856436": null
+  };
+
   const TEAM_ROWS = `
 howrd|Howard Bison|Howard
 umbc|UMBC Retrievers|UMBC
@@ -130,6 +136,22 @@ missr|Missouri Tigers|Missouri
 
   function proxied(url) {
     return workerBase + encodeURIComponent(url);
+  }
+
+  function getFinalizedAtOverride(gameId) {
+    const raw = FINALIZED_AT_OVERRIDES[String(gameId)];
+    if (raw == null || raw === "") return null;
+
+    if (typeof raw === "number" && Number.isFinite(raw)) {
+      return raw > 1e12 ? Math.floor(raw / 1000) : Math.floor(raw);
+    }
+
+    const parsedMs = Date.parse(String(raw));
+    if (Number.isFinite(parsedMs)) {
+      return Math.floor(parsedMs / 1000);
+    }
+
+    return null;
   }
 
   async function fetchHistoricSummary(gameId) {
@@ -1834,7 +1856,7 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
       const phase = getGamePhase(freshGame);
       if (phase === "final") {
         if (!state.finalizedAtTs) {
-          state.finalizedAtTs = Math.floor(Date.now() / 1000);
+          state.finalizedAtTs = getFinalizedAtOverride(state.espnGameId) || Math.floor(Date.now() / 1000);
         }
       }
       const badgeText = getGameBadge(freshGame);
