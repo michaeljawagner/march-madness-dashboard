@@ -408,344 +408,6 @@ missr|Missouri Tigers|Missouri
     state.dom.chartLegendEl.classList.toggle("is-hidden", !visible);
   }
 
-    function parseProbText(text) {
-    const n = Number(String(text || "").replace(/[^0-9.]/g, ""));
-    return Number.isFinite(n) ? (n / 100) : null;
-  }
-
-  function getClockContext(game) {
-    const shortDetail = String(game?.status?.type?.shortDetail || "");
-    const description = String(game?.status?.type?.description || "");
-    const combined = (shortDetail + " " + description).toLowerCase();
-
-    if (combined.includes("halftime")) {
-      return { period: 1.5, remainingSeconds: 0, isHalftime: true, isOT: false };
-    }
-
-    if (combined.includes("ot") || combined.includes("overtime")) {
-      return { period: 3, remainingSeconds: null, isHalftime: false, isOT: true };
-    }
-
-    const match = shortDetail.match(/(\d+):(\d+)\s*-\s*(\d)(?:st|nd)/i);
-    if (match) {
-      return {
-        period: Number(match[3]),
-        remainingSeconds: (Number(match[1]) * 60) + Number(match[2]),
-        isHalftime: false,
-        isOT: false
-      };
-    }
-
-    return { period: null, remainingSeconds: null, isHalftime: false, isOT: false };
-  }
-
-  function getScoreNumbers(state) {
-    return {
-      a: Number(state?.dom?.scoreAEl?.textContent || 0),
-      b: Number(state?.dom?.scoreBEl?.textContent || 0)
-    };
-  }
-
-  function getSeedGap(state) {
-    if (!Number.isFinite(Number(state.seedOrange)) || !Number.isFinite(Number(state.seedBlue))) return null;
-    return Math.abs(Number(state.seedOrange) - Number(state.seedBlue));
-  }
-
-  function getUnderdogSide(state) {
-    const seedA = Number(state.seedOrange);
-    const seedB = Number(state.seedBlue);
-    if (!Number.isFinite(seedA) || !Number.isFinite(seedB) || seedA === seedB) return null;
-    return seedA > seedB ? "A" : "B";
-  }
-
-  function getFavoriteSide(state) {
-    const seedA = Number(state.seedOrange);
-    const seedB = Number(state.seedBlue);
-    if (!Number.isFinite(seedA) || !Number.isFinite(seedB) || seedA === seedB) return null;
-    return seedA < seedB ? "A" : "B";
-  }
-
-  function getWinnerSide(state) {
-    const scores = getScoreNumbers(state);
-    if (!Number.isFinite(scores.a) || !Number.isFinite(scores.b) || scores.a === scores.b) return null;
-    return scores.a > scores.b ? "A" : "B";
-  }
-
-  function getBadgeStyles(tone) {
-    const styles = {
-      neutral: { background: "#f3f4f6", border: "#d1d5db", text: "#4b5563" },
-      amber: { background: "#fff7ed", border: "#fdba74", text: "#9a3412" },
-      blue: { background: "#eff6ff", border: "#93c5fd", text: "#1d4ed8" },
-      red: { background: "#fef2f2", border: "#fca5a5", text: "#b91c1c" },
-      purple: { background: "#faf5ff", border: "#d8b4fe", text: "#7e22ce" },
-      green: { background: "#ecfdf5", border: "#86efac", text: "#166534" }
-    };
-    return styles[tone] || styles.neutral;
-  }
-
-  function getLiveBadge(state) {
-    const game = state.espnGame.game;
-    const phase = getGamePhase(game);
-    if (phase !== "live") return null;
-
-    const clock = getClockContext(game);
-    if (!clock.isOT && clock.period !== 2) return null;
-
-    const probs = {
-      a: parseProbText(state.dom.probAEl.textContent),
-      b: parseProbText(state.dom.probBEl.textContent)
-    };
-    const scores = getScoreNumbers(state);
-    const margin = Math.abs(scores.a - scores.b);
-    const seedGap = getSeedGap(state);
-    const underdogSide = getUnderdogSide(state);
-    const favoriteSide = getFavoriteSide(state);
-
-    if (clock.isOT) {
-      return { label: "OT DRAMA", tone: "purple" };
-    }
-
-    if (
-      Number.isFinite(clock.remainingSeconds) &&
-      clock.remainingSeconds <= 240 &&
-      margin <= 4 &&
-      Number.isFinite(probs.a) &&
-      Number.isFinite(probs.b) &&
-      probs.a >= 0.35 && probs.a <= 0.65 &&
-      probs.b >= 0.35 && probs.b <= 0.65
-    ) {
-      return { label: "TIGHT FINISH", tone: "amber" };
-    }
-
-    if (
-      Number.isFinite(seedGap) &&
-      seedGap >= 4 &&
-      underdogSide &&
-      (clock.remainingSeconds === null || clock.remainingSeconds <= 600)
-    ) {
-      const underdogProb = underdogSide === "A" ? probs.a : probs.b;
-      const underdogLeading = underdogSide === "A" ? (scores.a > scores.b) : (scores.b > scores.a);
-      if ((Number.isFinite(underdogProb) && underdogProb >= 0.6) || underdogLeading) {
-        return { label: "UPSET ALERT", tone: "red" };
-      }
-    }
-
-    if (
-      favoriteSide &&
-      (clock.remainingSeconds === null || clock.remainingSeconds <= 600)
-    ) {
-      const favoriteProb = favoriteSide === "A" ? probs.a : probs.b;
-      if (Number.isFinite(favoriteProb) && favoriteProb <= 0.4) {
-        return { label: "FAVORITE IN TROUBLE", tone: "blue" };
-      }
-    }
-
-    if (
-      Number(state.excitement) >= 8.3 &&
-      (clock.remainingSeconds === null || clock.remainingSeconds <= 720)
-    ) {
-      return { label: "PURE CHAOS", tone: "purple" };
-    }
-
-    return null;
-  }
-
-  function getFinalBadge(state) {
-    const game = state.espnGame.game;
-    const phase = getGamePhase(game);
-    if (phase !== "final") return null;
-
-    const clock = getClockContext(game);
-    const scores = getScoreNumbers(state);
-    const margin = Math.abs(scores.a - scores.b);
-    const winnerSide = getWinnerSide(state);
-    const seedGap = getSeedGap(state);
-    const underdogSide = getUnderdogSide(state);
-    const fullHistory = Array.isArray(state.latestHistory) ? state.latestHistory : [];
-    const displayHistory = Array.isArray(state.latestDisplayHistory) ? state.latestDisplayHistory : [];
-
-    // ALL-TIME UPSET first
-    if (
-      Number.isFinite(seedGap) &&
-      seedGap >= 10 &&
-      winnerSide &&
-      underdogSide &&
-      winnerSide === underdogSide
-    ) {
-      return { label: "ALL-TIME UPSET", tone: "red" };
-    }
-
-    // PURE CHAOS (high threshold) now #2 priority
-    if (Number(state.excitement) >= 9) {
-      return { label: "PURE CHAOS", tone: "purple" };
-    }
-
-    // OT DRAMA after PURE CHAOS
-    if (clock.isOT) {
-      return { label: "OT DRAMA", tone: "purple" };
-    }
-
-    if (winnerSide && displayHistory.length >= 5) {
-      let wasTrailing = false;
-
-      for (let i = 0; i < displayHistory.length; i++) {
-        const p = winnerSide === "A"
-          ? Number(displayHistory[i].p)
-          : (1 - Number(displayHistory[i].p));
-
-        if (Number.isFinite(p) && p < 0.5) {
-          wasTrailing = true;
-          break;
-        }
-      }
-
-      if (wasTrailing) {
-        const winnerMinProb = displayHistory.reduce(function (min, point) {
-          const p = winnerSide === "A"
-            ? Number(point.p)
-            : (1 - Number(point.p));
-          return Number.isFinite(p) ? Math.min(min, p) : min;
-        }, 1);
-
-        if (winnerMinProb <= 0.35) {
-          return { label: "DON'T CALL IT A COMEBACK", tone: "green" };
-        }
-      }
-    }
-
-    // MARKET MISS block removed
-
-    // replaced UPSET/ALL-TIME UPSET block with above
-
-    if (margin <= 3 && Number(state.excitement) >= 7) {
-      return { label: "TIGHT FINISH", tone: "amber" };
-    }
-
-    if (Number(state.excitement) <= 3.2) {
-      if (margin >= 30) {
-        return { label: "BELT TO ASS", tone: "neutral" };
-      }
-      return { label: "SNOOZE FEST", tone: "neutral" };
-    }
-
-    if (winnerSide && displayHistory.length >= 3) {
-      const winnerStayedAhead = displayHistory.every(function (point) {
-        const p = winnerSide === "A" ? Number(point.p) : (1 - Number(point.p));
-        return Number.isFinite(p) ? p >= 0.5 : false;
-      });
-      if (winnerStayedAhead) {
-        return { label: "WIRE TO WIRE", tone: "blue" };
-      }
-    }
-
-    if (margin >= 30) {
-      return { label: "BELT TO ASS", tone: "neutral" };
-    }
-
-    if (Number(state.excitement) >= 8.5 && Number(state.excitement) < 9) {
-      return { label: "PURE CHAOS", tone: "purple" };
-    }
-
-    // Insert UPSET ALERT block after PURE CHAOS
-    if (
-      Number.isFinite(seedGap) &&
-      seedGap >= 4 &&
-      winnerSide &&
-      underdogSide &&
-      winnerSide === underdogSide
-    ) {
-      return { label: "UPSET ALERT", tone: "red" };
-    }
-
-    return null;
-  }
-
-  function getNarrativeBadge(state) {
-    return getGamePhase(state.espnGame.game) === "final"
-      ? getFinalBadge(state)
-      : getLiveBadge(state);
-  }
-
-  function renderCardFooter(state, rightText) {
-    const badgeEl = state.dom.footerBadgeEl;
-    const excEl = state.dom.footerExcEl;
-    const excText = String(rightText || ("EXC " + ((state.excitement != null ? state.excitement : 2.5).toFixed(1))));
-    const excLabel = excText.split(" • ")[0];
-    const badge = getNarrativeBadge(state);
-
-    badgeEl.textContent = "";
-    badgeEl.style.background = "";
-    badgeEl.style.color = "";
-    badgeEl.style.border = "";
-    badgeEl.style.borderRadius = "";
-    badgeEl.style.padding = "";
-    badgeEl.style.fontWeight = "";
-    badgeEl.style.fontSize = "";
-    badgeEl.style.letterSpacing = "";
-    badgeEl.style.textTransform = "";
-    badgeEl.style.boxShadow = "";
-    badgeEl.style.display = "flex";
-    badgeEl.style.alignItems = "center";
-
-    if (badge) {
-      const badgeStyles = getBadgeStyles(badge.tone);
-      badgeEl.textContent = badge.label;
-      badgeEl.style.background = badgeStyles.background;
-      badgeEl.style.color = badgeStyles.text;
-      badgeEl.style.border = `1px solid ${badgeStyles.border}`;
-      badgeEl.style.borderRadius = "999px";
-      badgeEl.style.padding = "2px 10px";
-      badgeEl.style.fontWeight = "700";
-      badgeEl.style.fontSize = "14px";
-      badgeEl.style.letterSpacing = "0.02em";
-      badgeEl.style.textTransform = "uppercase";
-      badgeEl.style.boxShadow = "0 1px 2px rgba(0,0,0,0.06)";
-      badgeEl.style.display = "inline-flex";
-    }
-
-    excEl.textContent = excLabel;
-    excEl.style.background = "";
-    excEl.style.color = "";
-    excEl.style.fontWeight = "";
-    excEl.style.padding = "";
-    excEl.style.borderRadius = "";
-    excEl.style.display = "";
-    excEl.style.lineHeight = "";
-    excEl.style.border = "";
-    excEl.style.boxShadow = "";
-    excEl.style.alignItems = "";
-    excEl.style.justifyContent = "";
-    excEl.style.minWidth = "";
-    excEl.style.boxSizing = "";
-
-    const phase = getGamePhase(state.espnGame.game);
-    const exc = state.excitement;
-
-    // Hide excitement pill before tip (upcoming games)
-    if (phase === "upcoming") {
-      excEl.style.display = "none";
-      return;
-    } else {
-      excEl.style.display = "inline-flex";
-    }
-    const styles = getExcitementStyles(exc);
-    if (styles) {
-      excEl.style.background = styles.background;
-      excEl.style.color = styles.text;
-      excEl.style.fontWeight = "700";
-      excEl.style.padding = "4px 10px";
-      excEl.style.borderRadius = "999px";
-      excEl.style.display = "inline-flex";
-      excEl.style.alignItems = "center";
-      excEl.style.justifyContent = "center";
-      excEl.style.lineHeight = "1";
-      excEl.style.border = `1px solid ${styles.border}`;
-      excEl.style.boxShadow = "0 1px 2px rgba(0,0,0,0.06)";
-      excEl.style.minWidth = "78px";
-      excEl.style.boxSizing = "border-box";
-    }
-  }
-
   function isStateVisible(state) {
     return !!state?.dom?.root?.closest(".pm-section.is-active");
   }
@@ -802,8 +464,46 @@ function getExcitementStyles(exc) {
 
 function setStatusLine(state, leftText, rightText) {
   state.dom.statusLeftEl.textContent = leftText || "";
-  state.dom.statusRightEl.textContent = "";
-  renderCardFooter(state, rightText);
+  state.dom.statusRightEl.textContent = rightText || "";
+
+  const el = state.dom.statusRightEl;
+
+  // Reset styles first so non-EXC states stay clean
+  el.style.background = "";
+  el.style.color = "";
+  el.style.fontWeight = "";
+  el.style.padding = "";
+  el.style.borderRadius = "";
+  el.style.display = "";
+  el.style.lineHeight = "";
+  el.style.border = "";
+  el.style.boxShadow = "";
+  el.style.alignItems = "";
+  el.style.justifyContent = "";
+  el.style.minWidth = "";
+  el.style.boxSizing = "";
+
+  // Apply excitement pill styling to all EXC values
+  if (rightText && rightText.includes("EXC")) {
+    const exc = state.excitement;
+    const styles = getExcitementStyles(exc);
+
+    if (styles) {
+      el.style.background = styles.background;
+      el.style.color = styles.text;
+      el.style.fontWeight = "700";
+      el.style.padding = "4px 10px";
+      el.style.borderRadius = "999px";
+      el.style.display = "inline-flex";
+      el.style.alignItems = "center";
+      el.style.justifyContent = "center";
+      el.style.lineHeight = "1";
+      el.style.border = `1px solid ${styles.border}`;
+      el.style.boxShadow = "0 1px 2px rgba(0,0,0,0.06)";
+      el.style.minWidth = "78px";
+      el.style.boxSizing = "border-box";
+    }
+  }
 }
 
   function renderFallbackStatus(state, game) {
@@ -1423,11 +1123,6 @@ function setStatusLine(state, leftText, rightText) {
       <div class="pm-chart-wrap">
         <canvas></canvas>
       </div>
-
-      <div class="pm-card-footer" style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:10px;">
-        <div class="pm-card-badge" style="min-height:28px;display:flex;align-items:center;"></div>
-        <div class="pm-card-exc"></div>
-      </div>
     `;
 
     return {
@@ -1448,9 +1143,7 @@ function setStatusLine(state, leftText, rightText) {
       legendBlueLabelEl: card.querySelectorAll(".pm-legend-label")[1],
       chartLegendEl: card.querySelector(".pm-chart-legend"),
       canvasEl: card.querySelector("canvas"),
-      chartWrapEl: card.querySelector(".pm-chart-wrap"),
-      footerBadgeEl: card.querySelector(".pm-card-badge"),
-      footerExcEl: card.querySelector(".pm-card-exc")
+      chartWrapEl: card.querySelector(".pm-chart-wrap")
     };
   }
 
@@ -1739,9 +1432,6 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
       state.dom.probBEl.textContent = smartRoundPct(1 - latestProb);
     }
 
-    state.latestHistory = history;
-    state.latestDisplayHistory = displayHistory.length ? displayHistory : history;
-
     if (phase !== "upcoming") {
       const excitement = getExcitementScore(displayHistory.length ? displayHistory : history, state);
       if (excitement !== null) state.excitement = excitement;
@@ -1887,8 +1577,6 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
               state.excitement = Number(historicExcitement);
             }
 
-            state.latestHistory = chartHistory;
-            state.latestDisplayHistory = chartHistory;
             updateChartForCard(state, chartHistory);
             hasHistoricChart = true;
           }
@@ -2013,8 +1701,6 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
           startTs: null,
           displayStartTs: null,
           lastHistoryTs: null,
-          latestHistory: null,
-          latestDisplayHistory: null,
          lastPregameOddsRefreshAt: null,
             finished: false,
             hasMarket: false,
