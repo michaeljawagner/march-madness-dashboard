@@ -1420,10 +1420,6 @@ function setStatusLine(state, leftText, rightText) {
     const card = document.createElement("div");
     card.className = "pm-card";
     card.dataset.hiddenNoMarket = "false";
-  function setCardHiddenNoMarket(state, hidden) {
-    state.dom.root.dataset.hiddenNoMarket = hidden ? "true" : "false";
-    state.dom.root.style.display = hidden ? "none" : "";
-  }
 
     card.innerHTML = `
       <div class="pm-scoreboard">
@@ -1553,6 +1549,11 @@ function setStatusLine(state, leftText, rightText) {
 
     renderFallbackStatus(state, game);
     setChartVisible(state, false);
+  }
+
+  function setCardHiddenNoMarket(state, hidden) {
+    state.dom.root.dataset.hiddenNoMarket = hidden ? "true" : "false";
+    state.dom.root.style.display = hidden ? "none" : "";
   }
 
   async function hydrateCardMarket(state, usedEventSlugs) {
