@@ -1768,7 +1768,7 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
       setChartVisible(state, true);
     }
 
-    void saveLockedChartEverywhere(state);
+    saveLockedChartToStorage(state);
 
     if (reason) {
       console.log("Chart locked", state.title, reason);
@@ -2200,7 +2200,11 @@ console.log("[CHART RESPONSE]", {
   null;
 
 if (historyToLock) {
+  const shouldPersistLockedChart = !state.chartLocked;
   lockChart(state, historyToLock, "FINAL");
+  if (shouldPersistLockedChart) {
+    await saveLockedChartEverywhere(state);
+  }
 }
 
 if (summary && summary.finalExcitement != null) {
