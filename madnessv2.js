@@ -28,17 +28,6 @@ window.addEventListener("load", function () {
   const allCardStates = [];
   const HYDRATE_BATCH_SIZE = 3;
 
-  // Manual final-time overrides (ISO string or unix seconds). Used to freeze charts at the real final moment.
-  // SMU vs Miami (OH): update this value if you want to manually clamp the chart earlier/later.
-  const FINALIZED_AT_OVERRIDES = {
-    "401856436": "2026-03-19T02:23:00Z"
-  };
-
-  // Debug specific games by ESPN id.
-  const DEBUG_GAME_IDS = {
-    "401856436": true
-  };
-
   const TEAM_ROWS = `
 howrd|Howard Bison|Howard
 umbc|UMBC Retrievers|UMBC
@@ -141,26 +130,6 @@ missr|Missouri Tigers|Missouri
 
   function proxied(url) {
     return workerBase + encodeURIComponent(url);
-  }
-
-  function getFinalizedAtOverride(gameId) {
-    const raw = FINALIZED_AT_OVERRIDES[String(gameId)];
-    if (raw == null || raw === "") return null;
-
-    if (typeof raw === "number" && Number.isFinite(raw)) {
-      return raw > 1e12 ? Math.floor(raw / 1000) : Math.floor(raw);
-    }
-
-    const parsedMs = Date.parse(String(raw));
-    if (Number.isFinite(parsedMs)) {
-      return Math.floor(parsedMs / 1000);
-    }
-
-    return null;
-  }
-
-  function isDebugGame(gameId) {
-    return !!DEBUG_GAME_IDS[String(gameId)];
   }
 
   async function fetchHistoricSummary(gameId) {
@@ -1610,25 +1579,6 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
     state.displayStartTs = tipTsCandidate;
     state.tokenOrange = tokenIds[teamAIndex];
 
-    if (isDebugGame(state.espnGameId)) {
-      console.log("[DEBUG hydrateCardMarket]", {
-        espnGameId: state.espnGameId,
-        espnTitle: espnGame.title,
-        matchedEventTitle: eventData?.title || null,
-        matchedEventSlug: eventData?.slug || null,
-        marketSlug: market.slug || null,
-        outcomes: outcomes,
-        tokenIds: tokenIds,
-        prices: prices,
-        teamAIndex: teamAIndex,
-        teamBIndex: teamBIndex,
-        tokenOrange: tokenIds[teamAIndex],
-        startTs: startTsCandidate,
-        displayStartTs: tipTsCandidate,
-        finalizedAtTs: state.finalizedAtTs || null
-      });
-    }
-
     state.dom.probAEl.textContent = Number.isFinite(teamAPrice) ? smartRoundPct(teamAPrice) : "—";
     state.dom.probBEl.textContent = Number.isFinite(teamBPrice) ? smartRoundPct(teamBPrice) : "—";
 
@@ -1759,7 +1709,7 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
     if (phase === "upcoming") setChartVisible(state, false);
     else setChartVisible(state, true);
 
-    const endTs = state.finalizedAtTs || Math.floor(Date.now() / 1000);
+    const endTs = Math.floor(Date.now() / 1000);
     const url =
       "https://clob.polymarket.com/prices-history?market=" +
       encodeURIComponent(state.tokenOrange) +
@@ -1769,55 +1719,12 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
 
     const historyRes = await fetch(proxied(url)).then(r => r.json());
     let history = Array.isArray(historyRes.history) ? historyRes.history : [];
-
-    if (isDebugGame(state.espnGameId)) {
-      console.log("[DEBUG refreshCardChart/raw]", {
-        espnGameId: state.espnGameId,
-        title: state.title,
-        marketSlug: state.marketSlug,
-        tokenOrange: state.tokenOrange,
-        startTs: state.startTs,
-        endTs: endTs,
-        displayStartTs: state.displayStartTs || null,
-        finalizedAtTs: state.finalizedAtTs || null,
-        rawHistoryCount: history.length,
-        firstRawPoint: history[0] || null,
-        lastRawPoint: history.length ? history[history.length - 1] : null
-      });
-    }
-    // HARD CLAMP: do not allow any data after finalizedAtTs
-    if (state.finalizedAtTs) {
-      history = history.filter(function (point) {
-        return Number(point.t) <= state.finalizedAtTs;
-      });
-    }
-
-    if (isDebugGame(state.espnGameId)) {
-      console.log("[DEBUG refreshCardChart/clamped]", {
-        espnGameId: state.espnGameId,
-        finalizedAtTs: state.finalizedAtTs || null,
-        clampedHistoryCount: history.length,
-        firstClampedPoint: history[0] || null,
-        lastClampedPoint: history.length ? history[history.length - 1] : null
-      });
-    }
     if (!history.length) {
       if (phase !== "upcoming") setChartVisible(state, false);
       return;
     }
 
-        history = trimHistoryAtResolution(history);
-
-    if (phase === "final") {
-      const winnerSide = getWinnerSide(state);
-      const lastTs = Number(history[history.length - 1]?.t || endTs || Math.floor(Date.now() / 1000));
-
-      if (winnerSide === "A") {
-        history = history.concat([{ t: lastTs + 1, p: 1 }]);
-      } else if (winnerSide === "B") {
-        history = history.concat([{ t: lastTs + 1, p: 0 }]);
-      }
-    }
+    history = trimHistoryAtResolution(history);
 
     const latestProb = Number(history[history.length - 1].p);
     const displayStartTs = Number(state.displayStartTs || 0);
@@ -1914,11 +1821,6 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
       state.dom.legendBlueLabelEl.textContent = state.teamBlue;
 
       const phase = getGamePhase(freshGame);
-      if (phase === "final") {
-        if (!state.finalizedAtTs) {
-          state.finalizedAtTs = getFinalizedAtOverride(state.espnGameId) || Math.floor(Date.now() / 1000);
-        }
-      }
       const badgeText = getGameBadge(freshGame);
       const tipText = formatTip(freshGame.date);
 
@@ -2113,7 +2015,6 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
           lastHistoryTs: null,
           latestHistory: null,
           latestDisplayHistory: null,
-          finalizedAtTs: null,
          lastPregameOddsRefreshAt: null,
             finished: false,
             hasMarket: false,
