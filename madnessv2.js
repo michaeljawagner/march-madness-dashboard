@@ -2110,10 +2110,13 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
       }
 
       if (phase === "live") {
-        if (visible) {
-          hasLiveVisibleGame = true;
+        hasLiveVisibleGame = true;
+
+        // Always build chart once market is ready (even if not visible)
+        if (state.hasMarket && state.tokenOrange && state.startTs) {
           await refreshCardChart(state);
         }
+
         continue;
       }
 
