@@ -2091,7 +2091,20 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
   async function refreshBoard() {
     const activeStates = allCardStates.filter(s => !s.finished);
     const activeDates = [...new Set(activeStates.map(s => s.scoreboardDate))];
-    await Promise.all(activeDates.map(date => fetchScoreboardByDate(date, true)));
+
+    const expandedDates = new Set();
+
+    activeDates.forEach(function (date) {
+      expandedDates.add(date);
+      expandedDates.add(shiftYmd(date, -1));
+      expandedDates.add(shiftYmd(date, 1));
+    });
+
+    await Promise.all(
+      Array.from(expandedDates).map(function (date) {
+        return fetchScoreboardByDate(date, true);
+      })
+    );
 
     let hasLiveVisibleGame = false;
     const now = Date.now();
