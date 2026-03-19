@@ -2020,28 +2020,30 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
         const hasTwoTeams = competitors.length === 2;
 
         const names = competitors.map(c => getTeamName(c.team));
-
         const hasRealTeams = names.every(n => n && !/^tbd$/i.test(n));
 
         const hasAnySeed =
           getPreferredSeed(competitors[0]) ||
           getPreferredSeed(competitors[1]);
 
-        const now = Date.now();
-        const gameTime = new Date(game.date).getTime();
+        const phase = getGamePhase(game);
 
-        // 🔑 CORE FIXES:
+        // 🚨 CRITICAL FIX: ALWAYS KEEP LIVE GAMES
+        if (phase === "live") {
+          return hasTwoTeams && hasRealTeams;
+        }
 
-        // 1. FUTURE GAMES → allow even if seeds missing
-        if (gameTime > now) {
+        // FUTURE GAMES
+        if (phase === "upcoming") {
           return hasTwoTeams && hasRealTeams && (isTournamentText || fallbackRound);
         }
 
-        // 2. LIVE/PAST GAMES → REQUIRE stronger signal
-        if (!isTournamentText && !hasAnySeed) return false;
+        // FINAL GAMES
+        if (phase === "final") {
+          return hasTwoTeams && hasRealTeams && (isTournamentText || hasAnySeed);
+        }
 
-        // 3. Always require valid structure
-        return hasTwoTeams && hasRealTeams;
+        return false;
       })
       .map(function (g) {
         g.round = getMarchMadnessRound(g.game);
