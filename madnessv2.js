@@ -2054,23 +2054,14 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
         const team1 = getTeamName(competitors[0]?.team);
         const team2 = getTeamName(competitors[1]?.team);
 
-       const slug1 = getPolySlug(team1);
-const slug2 = getPolySlug(team2);
-const phase = getGamePhase(game);
-
-// 🔒 HARD FILTER — but allow LIVE games through even if lookup is missing
-if (phase !== "live" && (!slug1 || !slug2)) {
-  return false;
-}
-
-// --- (the rest of the original logic remains unchanged) ---
-const isTournamentText = isMensMarchMadnessGame(game);
+        const slug1 = getPolySlug(team1);
+        const slug2 = getPolySlug(team2);
+        const phase = getGamePhase(game);
+        const isTournamentText = isMensMarchMadnessGame(game);
         const fallbackRound = getFallbackRoundByDate(game.date);
 
-        // (removed duplicate competitors/names block)
-
         const names = [team1, team2];
-        const hasRealTeams = names.every(function (n) { return !/^tbd$/i.test(n); });
+        const hasRealTeams = names.every(function (n) { return n && !/^tbd$/i.test(n); });
         const tbdCount = names.filter(function (n) { return /^tbd$/i.test(n); }).length;
 
         const bracketTeamCount = competitors.reduce(function (count, competitor) {
@@ -2081,34 +2072,34 @@ const isTournamentText = isMensMarchMadnessGame(game);
           getPreferredSeed(competitors[0]) ||
           getPreferredSeed(competitors[1]);
 
-        
+        const hasMarketLookup = !!slug1 && !!slug2;
 
         // Strong signal always wins.
         if (isTournamentText) {
           return true;
         }
 
-        // Date fallback should only admit likely bracket games.
+        // No tournament date fallback = not our board.
         if (!fallbackRound) {
           return false;
         }
 
-        // Live games: on known tournament dates, trust the live slate and keep valid two-team matchups.
+        // LIVE games: keep valid real matchups on tournament dates.
         if (phase === "live") {
           return hasRealTeams;
         }
 
-        // Upcoming games: stay strict so junk future games do not leak in.
+        // UPCOMING games: allow future bracket games even if Polymarket lookup is not ready yet.
         if (phase === "upcoming") {
           if (hasRealTeams) {
-            return bracketTeamCount === 2 || !!hasAnySeed;
+            return bracketTeamCount === 2 || !!hasAnySeed || hasMarketLookup;
           }
           return tbdCount === 1 && bracketTeamCount >= 1;
         }
 
-        // Final games: also be a bit looser on tournament dates so completed real games are not lost.
+        // FINAL games: be stricter so junk completed games stay out.
         if (phase === "final") {
-          return hasRealTeams && (bracketTeamCount === 2 || !!hasAnySeed || !!fallbackRound);
+          return hasRealTeams && (bracketTeamCount === 2 || !!hasAnySeed || hasMarketLookup);
         }
 
         return false;
