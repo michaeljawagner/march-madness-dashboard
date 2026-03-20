@@ -316,7 +316,55 @@ missr|Missouri Tigers|Missouri
     [normalizeSeedName("Miami OH")]: "11"
   };
 
+  const FORCE_TEAM_SEEDS = {
+    [normalizeSeedName("Howard")]: "16",
+    [normalizeSeedName("Howard Bison")]: "16",
+    [normalizeSeedName("UMBC")]: "16",
+    [normalizeSeedName("UMBC Retrievers")]: "16",
+    [normalizeSeedName("NC State")]: "11",
+    [normalizeSeedName("NC State Wolfpack")]: "11",
+    [normalizeSeedName("Texas")]: "11",
+    [normalizeSeedName("Texas Longhorns")]: "11",
+    [normalizeSeedName("Lehigh")]: "16",
+    [normalizeSeedName("Lehigh Mountain Hawks")]: "16",
+    [normalizeSeedName("Prairie View A&M")]: "16",
+    [normalizeSeedName("Prairie View A&M Panthers")]: "16",
+    [normalizeSeedName("SMU")]: "11",
+    [normalizeSeedName("SMU Mustangs")]: "11",
+    [normalizeSeedName("Miami (OH)")]: "11",
+    [normalizeSeedName("Miami (OH) RedHawks")]: "11",
+    [normalizeSeedName("Miami OH")]: "11",
+    [normalizeSeedName("Nebraska")]: "4",
+    [normalizeSeedName("Nebraska Cornhuskers")]: "4",
+    [normalizeSeedName("Troy")]: "13",
+    [normalizeSeedName("Troy Trojans")]: "13",
+    [normalizeSeedName("Michigan")]: "1",
+    [normalizeSeedName("Michigan Wolverines")]: "1",
+    [normalizeSeedName("Howard")]: "16",
+    [normalizeSeedName("Howard Bison")]: "16",
+    [normalizeSeedName("VCU")]: "11",
+    [normalizeSeedName("VCU Rams")]: "11",
+    [normalizeSeedName("North Carolina")]: "6",
+    [normalizeSeedName("North Carolina Tar Heels")]: "6"
+  };
+
+  function getForcedSeed(teamObjOrName) {
+    const candidates = typeof teamObjOrName === "string"
+      ? [teamObjOrName]
+      : buildSeedNameCandidates(teamObjOrName);
+
+    for (const candidate of candidates) {
+      const key = normalizeSeedName(candidate);
+      if (FORCE_TEAM_SEEDS[key]) return FORCE_TEAM_SEEDS[key];
+    }
+
+    return "";
+  }
+
   function getPreferredSeed(competitor) {
+    const forcedSeed = getForcedSeed(competitor?.team || {});
+    if (forcedSeed) return forcedSeed;
+
     const bracketSeed = getEspnBracketSeed(competitor?.team || {});
     if (bracketSeed) return bracketSeed;
 
@@ -2242,6 +2290,8 @@ console.log("[CHART RESPONSE]", {
       console.log("[SEED HOTFIX]", {
         title: state.title,
         raw1,
+        forcedSeed1: getForcedSeed(t1.team || raw1),
+        forcedSeed2: getForcedSeed(t2.team || raw2),
         raw2,
         seed1Raw,
         seed2Raw,
