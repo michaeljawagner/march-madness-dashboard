@@ -264,6 +264,16 @@ missr|Missouri Tigers|Missouri
   };
 
   function getPreferredSeed(competitor) {
+    const scoreboardSeed =
+      competitor?.tournamentSeed ??
+      competitor?.seed ??
+      competitor?.team?.seed;
+
+    const seedNum = Number(scoreboardSeed);
+    if (Number.isFinite(seedNum) && seedNum >= 1 && seedNum <= 16) {
+      return String(seedNum);
+    }
+
     const bracketSeed = getEspnBracketSeed(competitor?.team || {});
     if (bracketSeed) return bracketSeed;
 
@@ -278,16 +288,6 @@ missr|Missouri Tigers|Missouri
     for (const candidate of rawCandidates) {
       const manualSeed = MANUAL_SEED_LOOKUP[normalizeSeedName(candidate)];
       if (manualSeed) return manualSeed;
-    }
-
-    const scoreboardSeed =
-      competitor?.tournamentSeed ??
-      competitor?.seed ??
-      competitor?.team?.seed;
-
-    const seedNum = Number(scoreboardSeed);
-    if (Number.isFinite(seedNum) && seedNum >= 1 && seedNum <= 16) {
-      return String(seedNum);
     }
 
     return "";
@@ -2084,7 +2084,7 @@ console.log("[CHART RESPONSE]", {
     await isCardMarketClosed(state);
   }
 
- async function refreshCardScoreboard(state) {
+  async function refreshCardScoreboard(state) {
   try {
     console.log("[SCOREBOARD REFRESH START]", state.title);
 
@@ -2123,12 +2123,37 @@ console.log("[CHART RESPONSE]", {
       const previousSeedForRaw1 = getRememberedSeedForCard(seedMap, t1.team || {}, raw1);
       const previousSeedForRaw2 = getRememberedSeedForCard(seedMap, t2.team || {}, raw2);
 
-      const seed1 = seed1Raw || previousSeedForRaw1 || "";
-      const seed2 = seed2Raw || previousSeedForRaw2 || "";
+      const canonicalSeedForRaw1 = teamMatchesDisplayName(state.teamOrange, raw1)
+        ? (state.seedOrange ? String(state.seedOrange) : "")
+        : (teamMatchesDisplayName(state.teamBlue, raw1) ? (state.seedBlue ? String(state.seedBlue) : "") : "");
+
+      const canonicalSeedForRaw2 = teamMatchesDisplayName(state.teamOrange, raw2)
+        ? (state.seedOrange ? String(state.seedOrange) : "")
+        : (teamMatchesDisplayName(state.teamBlue, raw2) ? (state.seedBlue ? String(state.seedBlue) : "") : "");
+
+      const seed1 = seed1Raw || previousSeedForRaw1 || canonicalSeedForRaw1 || "";
+      const seed2 = seed2Raw || previousSeedForRaw2 || canonicalSeedForRaw2 || "";
 
       rememberSeedForCard(seedMap, t1.team || {}, raw1, seed1);
       rememberSeedForCard(seedMap, t2.team || {}, raw2, seed2);
       state.seedMap = seedMap;
+
+      console.log("[SEED HOTFIX]", {
+        title: state.title,
+        raw1,
+        raw2,
+        seed1Raw,
+        seed2Raw,
+        previousSeedForRaw1,
+        previousSeedForRaw2,
+        canonicalSeedForRaw1,
+        canonicalSeedForRaw2,
+        finalSeed1: seed1,
+        finalSeed2: seed2,
+        stateSeedOrange: state.seedOrange,
+        stateSeedBlue: state.seedBlue,
+        orangeIsT1
+      });
 
       if (orangeIsT1) {
         setLogo(state.dom.teamALogoEl, logo1, raw1);
