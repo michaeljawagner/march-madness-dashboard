@@ -378,7 +378,8 @@ missr|Missouri Tigers|Missouri
       out.add(v.replace(/\bNC State\b/g, "NC St"));
       out.add(v.replace(/\bNC St\b/g, "NC State"));
       out.add(v.replace(/\bNC St\.\b/g, "NC State"));
-.replace(/\s+(Blue Devils|Saints|Wolfpack|Longhorns|Trojans|Cornhuskers|Tar Heels|Rams|Wolverines|Razorbacks|Rainbow Warriors|Bison|Cougars|Gaels|Aggies|Wildcats|Bruins|Bulldogs|Panthers|Cardinals|Huskies|Spartans|Volunteers|Gators|Hawkeyes|Cyclones|Cowboys|Commodores|Red Storm|Billikens|Buckeyes|Mustangs|RedHawks|Horned Frogs|Retrievers|Fighting Illini|Quakers|Broncos|Owls|Raiders|Paladins|Royals|Lancers|Sharks|Cavaliers|Hurricanes|Crimson Tide|Boilermakers|Zips|Jayhawks|Flames|Rebels|Golden Hurricane|Revolutionaries|Lobos|Seahawks|Demon Deacons|Redbirds)$/i, "")
+      out.add(v.replace(/\s+(Blue Devils|Saints|Wolfpack|Longhorns|Trojans|Cornhuskers|Tar Heels|Rams|Wolverines|Razorbacks|Rainbow Warriors|Bison|Cougars|Gaels|Aggies|Wildcats|Bruins|Bulldogs|Panthers|Cardinals|Huskies|Spartans|Volunteers|Gators|Hawkeyes|Cyclones|Cowboys|Commodores|Red Storm|Billikens|Buckeyes|Mustangs|RedHawks|Horned Frogs|Retrievers|Fighting Illini|Quakers|Broncos|Owls|Raiders|Paladins|Royals|Lancers|Sharks|Cavaliers|Hurricanes|Crimson Tide|Boilermakers|Zips|Jayhawks|Flames|Rebels|Golden Hurricane|Revolutionaries|Lobos|Seahawks|Demon Deacons|Redbirds)$/i, ""));
+
       if (/^duke$/i.test(v) || /^duke blue devils$/i.test(v)) {
         out.add("Duke");
         out.add("Duke Blue Devils");
@@ -432,6 +433,7 @@ missr|Missouri Tigers|Missouri
 
   for (const candidate of candidates) {
     const key = normalizeSeedName(candidate);
+    if (TEAM_SEED_CACHE[key]) return TEAM_SEED_CACHE[key];
   }
 
   return "";
