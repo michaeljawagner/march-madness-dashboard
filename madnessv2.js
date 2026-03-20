@@ -1628,6 +1628,16 @@ function setStatusLine(state, leftText, rightText) {
     rememberSeedForCard(state.seedMap, t1.team || {}, raw1, seed1);
     rememberSeedForCard(state.seedMap, t2.team || {}, raw2, seed2);
 
+    // Log initial seed capture
+    console.log("[INITIAL SEED CAPTURE]", {
+      title: state.title,
+      raw1,
+      raw2,
+      seed1,
+      seed2,
+      seedMap: state.seedMap
+    });
+
     state.dom.teamALabelEl.textContent = state.teamOrange;
     state.dom.teamBLabelEl.textContent = state.teamBlue;
     state.dom.legendOrangeLabelEl.textContent = state.teamOrange;
