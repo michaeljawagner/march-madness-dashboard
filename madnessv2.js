@@ -317,16 +317,6 @@ missr|Missouri Tigers|Missouri
   };
 
   function getPreferredSeed(competitor) {
-    const scoreboardSeed =
-      competitor?.tournamentSeed ??
-      competitor?.seed ??
-      competitor?.team?.seed;
-
-    const seedNum = Number(scoreboardSeed);
-    if (Number.isFinite(seedNum) && seedNum >= 1 && seedNum <= 16) {
-      return String(seedNum);
-    }
-
     const bracketSeed = getEspnBracketSeed(competitor?.team || {});
     if (bracketSeed) return bracketSeed;
 
@@ -341,6 +331,16 @@ missr|Missouri Tigers|Missouri
     for (const candidate of rawCandidates) {
       const manualSeed = MANUAL_SEED_LOOKUP[normalizeSeedName(candidate)];
       if (manualSeed) return manualSeed;
+    }
+
+    const scoreboardSeed =
+      competitor?.tournamentSeed ??
+      competitor?.seed ??
+      competitor?.team?.seed;
+
+    const seedNum = Number(scoreboardSeed);
+    if (Number.isFinite(seedNum) && seedNum >= 1 && seedNum <= 16) {
+      return String(seedNum);
     }
 
     return "";
@@ -1691,10 +1691,6 @@ function setStatusLine(state, leftText, rightText) {
   seedMap: state.seedMap
 });
 
-if (!seed1 || !seed2) {
-  void backfillCardSeedsFromGamePage(state);
-}
-
     state.dom.teamALabelEl.textContent = state.teamOrange;
     state.dom.teamBLabelEl.textContent = state.teamBlue;
     state.dom.legendOrangeLabelEl.textContent = state.teamOrange;
@@ -2219,12 +2215,8 @@ console.log("[CHART RESPONSE]", {
       const logo1 = getTeamLogo(t1.team);
       const logo2 = getTeamLogo(t2.team);
 
-      const pageSeedMap = await fetchEspnGamePageSeeds(state.espnGameId);
-      const pageSeed1 = pageSeedMap[getSeedDisplayKey(raw1)] || "";
-      const pageSeed2 = pageSeedMap[getSeedDisplayKey(raw2)] || "";
-
-      const seed1Raw = getPreferredSeed(t1) || pageSeed1;
-      const seed2Raw = getPreferredSeed(t2) || pageSeed2;
+      const seed1Raw = getPreferredSeed(t1);
+      const seed2Raw = getPreferredSeed(t2);
       const orangeIsT1 = teamMatchesDisplayName(state.teamOrange, raw1);
 
       const seedMap = state.seedMap || {};
@@ -2251,8 +2243,6 @@ console.log("[CHART RESPONSE]", {
         title: state.title,
         raw1,
         raw2,
-        pageSeed1,
-        pageSeed2,
         seed1Raw,
         seed2Raw,
         previousSeedForRaw1,
