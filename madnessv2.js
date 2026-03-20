@@ -54,7 +54,7 @@ mst|Michigan State Spartans|Michigan State|Michigan St
 mich|Michigan Wolverines|Michigan
 byu|BYU Cougars|BYU
 tenn|Tennessee Volunteers|Tennessee
-fla|Florida Gators|Florida
+fl|Florida Gators|Florida|FL
 hawaii|Hawaii Rainbow Warriors|Hawaii
 ark|Arkansas Razorbacks|Arkansas
 vcu|VCU Rams|VCU
@@ -1432,6 +1432,12 @@ function setStatusLine(state, leftText, rightText) {
 
   function getPolySlug(name) {
     const raw = String(name || "").trim();
+
+    // HARD OVERRIDE: Florida uses "fl" on Polymarket
+    if (/^florida$/i.test(raw) || /^florida gators$/i.test(raw)) {
+      return "fl";
+    }
+
     if (!raw) return null;
 
     const variants = [
