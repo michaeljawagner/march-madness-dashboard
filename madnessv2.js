@@ -270,7 +270,102 @@ missr|Missouri Tigers|Missouri
     [normalizeSeedName("Saint Mary's Gaels")]: "7",
     [normalizeSeedName("Texas A&M")]: "10",
     [normalizeSeedName("Texas A&M Aggies")]: "10",
-    [normalizeSeedName("Texas AM")]: "10"
+    [normalizeSeedName("Texas AM")]: "10",
+
+    // --- 2026 ESPN BRACKET SEED MAP ENTRIES ---
+    [normalizeSeedName("St John's")]: "5",
+    [normalizeSeedName("St. John's")]: "5",
+    [normalizeSeedName("St Johns")]: "5",
+    [normalizeSeedName("Saint John's")]: "5",
+    [normalizeSeedName("Saint John's Red Storm")]: "5",
+    [normalizeSeedName("Northern Iowa")]: "12",
+    [normalizeSeedName("Northern Iowa Panthers")]: "12",
+    [normalizeSeedName("Kansas")]: "4",
+    [normalizeSeedName("Kansas Jayhawks")]: "4",
+    [normalizeSeedName("California Baptist")]: "13",
+    [normalizeSeedName("Cal Baptist")]: "13",
+    [normalizeSeedName("California Baptist Lancers")]: "13",
+    [normalizeSeedName("UCLA")]: "7",
+    [normalizeSeedName("UCLA Bruins")]: "7",
+    [normalizeSeedName("UCF")]: "10",
+    [normalizeSeedName("UCF Knights")]: "10",
+    [normalizeSeedName("UConn")]: "2",
+    [normalizeSeedName("Connecticut")]: "2",
+    [normalizeSeedName("Connecticut Huskies")]: "2",
+    [normalizeSeedName("UConn Huskies")]: "2",
+    [normalizeSeedName("Furman")]: "15",
+    [normalizeSeedName("Furman Paladins")]: "15",
+    [normalizeSeedName("Arizona")]: "1",
+    [normalizeSeedName("Arizona Wildcats")]: "1",
+    [normalizeSeedName("Long Island")]: "16",
+    [normalizeSeedName("LIU")]: "16",
+    [normalizeSeedName("LIU Brooklyn")]: "16",
+    [normalizeSeedName("Long Island University")]: "16",
+    [normalizeSeedName("Long Island University Sharks")]: "16",
+    [normalizeSeedName("LIU Brooklyn Sharks")]: "16",
+    [normalizeSeedName("Villanova")]: "8",
+    [normalizeSeedName("Villanova Wildcats")]: "8",
+    [normalizeSeedName("Utah State")]: "9",
+    [normalizeSeedName("Utah State Aggies")]: "9",
+    [normalizeSeedName("Gonzaga")]: "3",
+    [normalizeSeedName("Gonzaga Bulldogs")]: "3",
+    [normalizeSeedName("Kennesaw State")]: "14",
+    [normalizeSeedName("Kennesaw State Owls")]: "14",
+    [normalizeSeedName("Miami")]: "7",
+    [normalizeSeedName("Miami Hurricanes")]: "7",
+    [normalizeSeedName("Missouri")]: "10",
+    [normalizeSeedName("Missouri Tigers")]: "10",
+    [normalizeSeedName("Purdue")]: "2",
+    [normalizeSeedName("Purdue Boilermakers")]: "2",
+    [normalizeSeedName("Queens")]: "15",
+    [normalizeSeedName("Queens Royals")]: "15",
+    [normalizeSeedName("Queens University")]: "15",
+    [normalizeSeedName("Queens University Royals")]: "15",
+    [normalizeSeedName("Florida")]: "1",
+    [normalizeSeedName("Florida Gators")]: "1",
+    [normalizeSeedName("Prairie View")]: "16",
+    [normalizeSeedName("Clemson")]: "8",
+    [normalizeSeedName("Clemson Tigers")]: "8",
+    [normalizeSeedName("Iowa")]: "9",
+    [normalizeSeedName("Iowa Hawkeyes")]: "9",
+    [normalizeSeedName("Illinois")]: "3",
+    [normalizeSeedName("Illinois Fighting Illini")]: "3",
+    [normalizeSeedName("Penn")]: "14",
+    [normalizeSeedName("Penn Quakers")]: "14",
+    [normalizeSeedName("Pennsylvania")]: "14",
+    [normalizeSeedName("Pennsylvania Quakers")]: "14",
+    [normalizeSeedName("Houston")]: "2",
+    [normalizeSeedName("Houston Cougars")]: "2",
+    [normalizeSeedName("Idaho")]: "15",
+    [normalizeSeedName("Idaho Vandals")]: "15",
+    [normalizeSeedName("Georgia")]: "8",
+    [normalizeSeedName("Georgia Bulldogs")]: "8",
+    [normalizeSeedName("Saint Louis")]: "9",
+    [normalizeSeedName("St. Louis")]: "9",
+    [normalizeSeedName("St Louis")]: "9",
+    [normalizeSeedName("Saint Louis Billikens")]: "9",
+    [normalizeSeedName("Texas Tech")]: "5",
+    [normalizeSeedName("Texas Tech Red Raiders")]: "5",
+    [normalizeSeedName("Akron")]: "12",
+    [normalizeSeedName("Akron Zips")]: "12",
+    [normalizeSeedName("Alabama")]: "4",
+    [normalizeSeedName("Alabama Crimson Tide")]: "4",
+    [normalizeSeedName("Hofstra")]: "13",
+    [normalizeSeedName("Hofstra Pride")]: "13",
+    [normalizeSeedName("Tennessee")]: "6",
+    [normalizeSeedName("Tennessee Volunteers")]: "6",
+    [normalizeSeedName("Virginia")]: "3",
+    [normalizeSeedName("Virginia Cavaliers")]: "3",
+    [normalizeSeedName("Wright State")]: "14",
+    [normalizeSeedName("Wright State Raiders")]: "14",
+    [normalizeSeedName("Kentucky")]: "7",
+    [normalizeSeedName("Kentucky Wildcats")]: "7",
+    [normalizeSeedName("Santa Clara")]: "10",
+    [normalizeSeedName("Santa Clara Broncos")]: "10",
+    [normalizeSeedName("Iowa State")]: "2",
+    [normalizeSeedName("Iowa State Cyclones")]: "2",
+    [normalizeSeedName("Tennessee State")]: "15",
+    [normalizeSeedName("Tennessee State Tigers")]: "15"
   };
 
 
@@ -289,35 +384,7 @@ missr|Missouri Tigers|Missouri
 
   function getPreferredSeed(competitor) {
     const forcedSeed = getForcedSeed(competitor?.team || {});
-    if (forcedSeed) return forcedSeed;
-
-    const bracketSeed = getEspnBracketSeed(competitor?.team || {});
-    if (bracketSeed) return bracketSeed;
-
-    const rawCandidates = [
-      competitor?.team?.shortDisplayName || "",
-      competitor?.team?.displayName || "",
-      competitor?.team?.name || "",
-      competitor?.team?.location || "",
-      competitor?.team?.abbreviation || ""
-    ].filter(Boolean);
-
-    for (const candidate of rawCandidates) {
-      const manualSeed = TEAM_SEED_LOOKUP[normalizeSeedName(candidate)];
-      if (manualSeed) return manualSeed;
-    }
-
-    const scoreboardSeed =
-      competitor?.tournamentSeed ??
-      competitor?.seed ??
-      competitor?.team?.seed;
-
-    const seedNum = Number(scoreboardSeed);
-    if (Number.isFinite(seedNum) && seedNum >= 1 && seedNum <= 16) {
-      return String(seedNum);
-    }
-
-    return "";
+    return forcedSeed || "";
   }
 
   function buildSeedNameCandidates(teamObj) {
@@ -405,13 +472,13 @@ missr|Missouri Tigers|Missouri
 
     if (typeof teamObjOrName === "string") {
       const key = normalizeSeedName(teamObjOrName);
-      return !!ESPN_BRACKET_SEEDS[key] || !!TEAM_SEED_LOOKUP[key];
+      return !!TEAM_SEED_LOOKUP[key];
     }
 
     const candidates = buildSeedNameCandidates(teamObjOrName);
     for (const candidate of candidates) {
       const key = normalizeSeedName(candidate);
-      if (ESPN_BRACKET_SEEDS[key] || TEAM_SEED_LOOKUP[key]) return true;
+      if (TEAM_SEED_LOOKUP[key]) return true;
     }
 
     return false;
