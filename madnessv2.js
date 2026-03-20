@@ -200,6 +200,46 @@ missr|Missouri Tigers|Missouri
     return normalizeSeedName(String(str || ""));
   }
 
+  function getTeamSeedKeys(teamObj, rawName) {
+    const keys = new Set();
+
+    function add(value) {
+      const key = getSeedDisplayKey(value);
+      if (key) keys.add(key);
+    }
+
+    add(rawName || "");
+
+    if (teamObj && typeof teamObj === "object") {
+      add(teamObj.shortDisplayName || "");
+      add(teamObj.displayName || "");
+      add(teamObj.name || "");
+      add(teamObj.location || "");
+      add(teamObj.abbreviation || "");
+
+      buildSeedNameCandidates(teamObj).forEach(add);
+    }
+
+    return Array.from(keys);
+  }
+
+  function rememberSeedForCard(seedMap, teamObj, rawName, seed) {
+    const seedStr = String(seed || "").trim();
+    if (!seedStr) return;
+
+    getTeamSeedKeys(teamObj, rawName).forEach(function (key) {
+      seedMap[key] = seedStr;
+    });
+  }
+
+  function getRememberedSeedForCard(seedMap, teamObj, rawName) {
+    const keys = getTeamSeedKeys(teamObj, rawName);
+    for (const key of keys) {
+      if (seedMap[key]) return seedMap[key];
+    }
+    return "";
+  }
+
   const MANUAL_SEED_LOOKUP = {
     [normalizeSeedName("Howard")]: "16",
     [normalizeSeedName("Howard Bison")]: "16",
@@ -1585,8 +1625,8 @@ function setStatusLine(state, leftText, rightText) {
     state.teamOrange = raw1;
     state.teamBlue = raw2;
     state.seedMap = {};
-    if (seed1) state.seedMap[getSeedDisplayKey(raw1)] = String(seed1);
-    if (seed2) state.seedMap[getSeedDisplayKey(raw2)] = String(seed2);
+    rememberSeedForCard(state.seedMap, t1.team || {}, raw1, seed1);
+    rememberSeedForCard(state.seedMap, t2.team || {}, raw2, seed2);
 
     state.dom.teamALabelEl.textContent = state.teamOrange;
     state.dom.teamBLabelEl.textContent = state.teamBlue;
@@ -2079,17 +2119,15 @@ console.log("[CHART RESPONSE]", {
       const orangeIsT1 = teamMatchesDisplayName(state.teamOrange, raw1);
 
       const seedMap = state.seedMap || {};
-      const normRaw1 = getSeedDisplayKey(raw1);
-      const normRaw2 = getSeedDisplayKey(raw2);
 
-      const previousSeedForRaw1 = seedMap[normRaw1] || "";
-      const previousSeedForRaw2 = seedMap[normRaw2] || "";
+      const previousSeedForRaw1 = getRememberedSeedForCard(seedMap, t1.team || {}, raw1);
+      const previousSeedForRaw2 = getRememberedSeedForCard(seedMap, t2.team || {}, raw2);
 
       const seed1 = seed1Raw || previousSeedForRaw1 || "";
       const seed2 = seed2Raw || previousSeedForRaw2 || "";
 
-      if (seed1) seedMap[normRaw1] = String(seed1);
-      if (seed2) seedMap[normRaw2] = String(seed2);
+      rememberSeedForCard(seedMap, t1.team || {}, raw1, seed1);
+      rememberSeedForCard(seedMap, t2.team || {}, raw2, seed2);
       state.seedMap = seedMap;
 
       if (orangeIsT1) {
