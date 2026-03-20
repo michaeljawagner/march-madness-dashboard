@@ -224,10 +224,20 @@ missr|Missouri Tigers|Missouri
   };
 
   function getPreferredSeed(competitor) {
-  const bracketSeed = getEspnBracketSeed(competitor?.team || {});
-  if (bracketSeed) {
-    return bracketSeed;
-  }
+    const scoreboardSeed =
+      competitor?.tournamentSeed ??
+      competitor?.seed ??
+      competitor?.team?.seed;
+
+    const scoreboardSeedNum = Number(scoreboardSeed);
+    if (Number.isFinite(scoreboardSeedNum) && scoreboardSeedNum >= 1 && scoreboardSeedNum <= 16) {
+      return String(scoreboardSeedNum);
+    }
+
+    const bracketSeed = getEspnBracketSeed(competitor?.team || {});
+    if (bracketSeed) {
+      return bracketSeed;
+    }
 
     const rawCandidates = [
       competitor?.team?.shortDisplayName || "",
@@ -240,16 +250,6 @@ missr|Missouri Tigers|Missouri
     for (const candidate of rawCandidates) {
       const manualSeed = MANUAL_SEED_LOOKUP[normalizeSeedName(candidate)];
       if (manualSeed) return manualSeed;
-    }
-
-    const scoreboardSeed =
-      competitor?.tournamentSeed ??
-      competitor?.seed ??
-      competitor?.team?.seed;
-
-    const seedNum = Number(scoreboardSeed);
-    if (Number.isFinite(seedNum) && seedNum >= 1 && seedNum <= 16) {
-      return String(seedNum);
     }
 
     return "";
@@ -1589,11 +1589,9 @@ function setStatusLine(state, leftText, rightText) {
     state.seedMap = {};
     if (seed1) {
       state.seedMap[getSeedDisplayKey(raw1)] = String(seed1);
-      GLOBAL_TEAM_SEED_MAP[getSeedDisplayKey(raw1)] = String(seed1);
     }
     if (seed2) {
       state.seedMap[getSeedDisplayKey(raw2)] = String(seed2);
-      GLOBAL_TEAM_SEED_MAP[getSeedDisplayKey(raw2)] = String(seed2);
     }
 
     state.dom.teamALabelEl.textContent = state.teamOrange;
@@ -2092,19 +2090,15 @@ const normRaw2 = getSeedDisplayKey(raw2);
 
 const previousSeedForRaw1 = seedMap[normRaw1] || "";
 const previousSeedForRaw2 = seedMap[normRaw2] || "";
-const globalSeedForRaw1 = GLOBAL_TEAM_SEED_MAP[normRaw1] || "";
-const globalSeedForRaw2 = GLOBAL_TEAM_SEED_MAP[normRaw2] || "";
 
-const seed1 = seed1Raw || previousSeedForRaw1 || globalSeedForRaw1 || "";
-const seed2 = seed2Raw || previousSeedForRaw2 || globalSeedForRaw2 || "";
+const seed1 = seed1Raw || previousSeedForRaw1 || "";
+const seed2 = seed2Raw || previousSeedForRaw2 || "";
 
 if (seed1) {
   seedMap[normRaw1] = String(seed1);
-  GLOBAL_TEAM_SEED_MAP[normRaw1] = String(seed1);
 }
 if (seed2) {
   seedMap[normRaw2] = String(seed2);
-  GLOBAL_TEAM_SEED_MAP[normRaw2] = String(seed2);
 }
 state.seedMap = seedMap;
 
@@ -2116,8 +2110,6 @@ console.log("[SEED DEBUG]", {
   seed2Raw,
   previousSeedForRaw1,
   previousSeedForRaw2,
-  globalSeedForRaw1,
-  globalSeedForRaw2,
   finalSeed1: seed1,
   finalSeed2: seed2,
   orangeIsT1,
@@ -2348,7 +2340,6 @@ return;
 roundTabsEl.innerHTML = "";
 sectionsEl.innerHTML = "";
 allCardStates.length = 0;
-Object.keys(GLOBAL_TEAM_SEED_MAP).forEach(function (key) { delete GLOBAL_TEAM_SEED_MAP[key]; });
 
     ESPN_BRACKET_SEEDS = await fetchEspnBracketSeeds();
 
