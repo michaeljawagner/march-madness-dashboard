@@ -26,6 +26,37 @@ window.addEventListener("load", function () {
   let ESPN_BRACKET_SEEDS = {};
   // Seed display should stay card-local to avoid cross-game contamination.
   const scoreboardCache = {};
+  const espnGameSeedCache = {};
+  async function fetchEspnGamePageSeeds(gameId) {
+    if (!gameId) return {};
+    if (espnGameSeedCache[gameId]) return espnGameSeedCache[gameId];
+
+    try {
+      const html = await fetch(
+        proxied("https://www.espn.com/mens-college-basketball/game/_/gameId/" + encodeURIComponent(gameId))
+      ).then(function (r) { return r.text(); });
+
+      const seedMap = {};
+      const re = /"displayName":"([^"\\]+)"[\s\S]{0,400}?"tournamentSeed":(\d{1,2})/g;
+      let match;
+      while ((match = re.exec(html)) !== null) {
+        const teamName = String(match[1] || "")
+          .replace(/\\u0026/g, "&")
+          .replace(/\\u0027/g, "'")
+          .replace(/\\\//g, "/");
+        const seed = String(match[2] || "").trim();
+        const key = getSeedDisplayKey(teamName);
+        if (key && seed) seedMap[key] = seed;
+      }
+
+      espnGameSeedCache[gameId] = seedMap;
+      return seedMap;
+    } catch (err) {
+      console.warn("Could not fetch ESPN game page seeds:", gameId, err);
+      espnGameSeedCache[gameId] = {};
+      return {};
+    }
+  }
   const allCardStates = [];
   const HYDRATE_BATCH_SIZE = 3;
 
@@ -2124,8 +2155,13 @@ console.log("[CHART RESPONSE]", {
       const raw2 = getTeamName(t2.team);
       const logo1 = getTeamLogo(t1.team);
       const logo2 = getTeamLogo(t2.team);
-      const seed1Raw = getPreferredSeed(t1);
-      const seed2Raw = getPreferredSeed(t2);
+
+      const pageSeedMap = await fetchEspnGamePageSeeds(state.espnGameId);
+      const pageSeed1 = pageSeedMap[getSeedDisplayKey(raw1)] || "";
+      const pageSeed2 = pageSeedMap[getSeedDisplayKey(raw2)] || "";
+
+      const seed1Raw = getPreferredSeed(t1) || pageSeed1;
+      const seed2Raw = getPreferredSeed(t2) || pageSeed2;
       const orangeIsT1 = teamMatchesDisplayName(state.teamOrange, raw1);
 
       const seedMap = state.seedMap || {};
@@ -2152,6 +2188,8 @@ console.log("[CHART RESPONSE]", {
         title: state.title,
         raw1,
         raw2,
+        pageSeed1,
+        pageSeed2,
         seed1Raw,
         seed2Raw,
         previousSeedForRaw1,
