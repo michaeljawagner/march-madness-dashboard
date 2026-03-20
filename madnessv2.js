@@ -28,35 +28,57 @@ window.addEventListener("load", function () {
   const scoreboardCache = {};
   const espnGameSeedCache = {};
   async function fetchEspnGamePageSeeds(gameId) {
-    if (!gameId) return {};
-    if (espnGameSeedCache[gameId]) return espnGameSeedCache[gameId];
+  if (!gameId) return {};
+  if (espnGameSeedCache[gameId]) return espnGameSeedCache[gameId];
 
-    try {
-      const html = await fetch(
-        proxied("https://www.espn.com/mens-college-basketball/game/_/gameId/" + encodeURIComponent(gameId))
-      ).then(function (r) { return r.text(); });
+  try {
+    const html = await fetch(
+      proxied("https://www.espn.com/mens-college-basketball/game/_/gameId/" + encodeURIComponent(gameId))
+    ).then(function (r) { return r.text(); });
 
-      const seedMap = {};
-      const re = /"displayName":"([^"\\]+)"[\s\S]{0,400}?"tournamentSeed":(\d{1,2})/g;
-      let match;
-      while ((match = re.exec(html)) !== null) {
-        const teamName = String(match[1] || "")
-          .replace(/\\u0026/g, "&")
-          .replace(/\\u0027/g, "'")
-          .replace(/\\\//g, "/");
-        const seed = String(match[2] || "").trim();
-        const key = getSeedDisplayKey(teamName);
-        if (key && seed) seedMap[key] = seed;
-      }
+    const seedMap = {};
 
-      espnGameSeedCache[gameId] = seedMap;
-      return seedMap;
-    } catch (err) {
-      console.warn("Could not fetch ESPN game page seeds:", gameId, err);
-      espnGameSeedCache[gameId] = {};
-      return {};
+    function remember(name, seed) {
+      const key = getSeedDisplayKey(name);
+      const seedStr = String(seed || "").trim();
+      if (key && seedStr) seedMap[key] = seedStr;
     }
+
+    let match;
+
+    const displayNameSeedRegex = /"displayName":"([^"\\]+)"[\s\S]{0,1600}?"tournamentSeed":(\d{1,2})/g;
+    while ((match = displayNameSeedRegex.exec(html)) !== null) {
+      const teamName = String(match[1] || "")
+        .replace(/\\u0026/g, "&")
+        .replace(/\\u0027/g, "'")
+        .replace(/\\\//g, "/");
+      remember(teamName, match[2]);
+    }
+
+    const shortNameSeedRegex = /"shortDisplayName":"([^"\\]+)"[\s\S]{0,1600}?"tournamentSeed":(\d{1,2})/g;
+    while ((match = shortNameSeedRegex.exec(html)) !== null) {
+      const teamName = String(match[1] || "")
+        .replace(/\\u0026/g, "&")
+        .replace(/\\u0027/g, "'")
+        .replace(/\\\//g, "/");
+      remember(teamName, match[2]);
+    }
+
+    const textSeedRegex = /(\d{1,2})\s+([A-Za-z0-9.'&()\-\s]+?)\s+(?:vs\.?|v\.?|at)\s+(\d{1,2})\s+([A-Za-z0-9.'&()\-\s]+)/gi;
+    while ((match = textSeedRegex.exec(html)) !== null) {
+      remember(match[2], match[1]);
+      remember(match[4], match[3]);
+    }
+
+    espnGameSeedCache[gameId] = seedMap;
+    console.log("[GAME PAGE SEEDS]", { gameId: String(gameId), seedMap: seedMap });
+    return seedMap;
+  } catch (err) {
+    console.warn("Could not fetch ESPN game page seeds:", gameId, err);
+    espnGameSeedCache[gameId] = {};
+    return {};
   }
+}
   const allCardStates = [];
   const HYDRATE_BATCH_SIZE = 3;
 
@@ -1642,11 +1664,8 @@ function setStatusLine(state, leftText, rightText) {
     const raw2 = getTeamName(t2.team);
     const logo1 = getTeamLogo(t1.team);
     const logo2 = getTeamLogo(t2.team);
-    const pageSeedMap = espnGameSeedCache[state.espnGameId] || {};
-    const pageSeed1 = pageSeedMap[getSeedDisplayKey(raw1)] || "";
-    const pageSeed2 = pageSeedMap[getSeedDisplayKey(raw2)] || "";
-    const seed1 = getPreferredSeed(t1) || pageSeed1;
-    const seed2 = getPreferredSeed(t2) || pageSeed2;
+    const seed1 = getPreferredSeed(t1);
+    const seed2 = getPreferredSeed(t2);
 
     setLogo(state.dom.teamALogoEl, logo1, raw1);
     setLogo(state.dom.teamBLogoEl, logo2, raw2);
@@ -1667,12 +1686,14 @@ function setStatusLine(state, leftText, rightText) {
   title: state.title,
   raw1,
   raw2,
-  pageSeed1,
-  pageSeed2,
   seed1,
   seed2,
   seedMap: state.seedMap
 });
+
+if (!seed1 || !seed2) {
+  void backfillCardSeedsFromGamePage(state);
+}
 
     state.dom.teamALabelEl.textContent = state.teamOrange;
     state.dom.teamBLabelEl.textContent = state.teamBlue;
@@ -1683,6 +1704,43 @@ function setStatusLine(state, leftText, rightText) {
 
     renderFallbackStatus(state, game);
     setChartVisible(state, false);
+  }
+
+  // Non-blocking async seed backfill helper
+  async function backfillCardSeedsFromGamePage(state) {
+    if (!state || !state.espnGameId) return;
+
+    try {
+      const comp = state.espnGame?.game?.competitions?.[0];
+      const competitors = comp?.competitors || [];
+      if (competitors.length < 2) return;
+
+      const t1 = competitors[0];
+      const t2 = competitors[1];
+      const raw1 = getTeamName(t1.team);
+      const raw2 = getTeamName(t2.team);
+      const pageSeedMap = await fetchEspnGamePageSeeds(state.espnGameId);
+      const pageSeed1 = pageSeedMap[getSeedDisplayKey(raw1)] || "";
+      const pageSeed2 = pageSeedMap[getSeedDisplayKey(raw2)] || "";
+      const orangeIsT1 = teamMatchesDisplayName(state.teamOrange, raw1);
+
+      if (orangeIsT1) {
+        if (pageSeed1 && !state.dom.teamASeedEl.textContent.trim()) setSeedText(state.dom.teamASeedEl, pageSeed1);
+        if (pageSeed2 && !state.dom.teamBSeedEl.textContent.trim()) setSeedText(state.dom.teamBSeedEl, pageSeed2);
+        state.seedOrange = pageSeed1 ? Number(pageSeed1) : state.seedOrange;
+        state.seedBlue = pageSeed2 ? Number(pageSeed2) : state.seedBlue;
+      } else {
+        if (pageSeed2 && !state.dom.teamASeedEl.textContent.trim()) setSeedText(state.dom.teamASeedEl, pageSeed2);
+        if (pageSeed1 && !state.dom.teamBSeedEl.textContent.trim()) setSeedText(state.dom.teamBSeedEl, pageSeed1);
+        state.seedOrange = pageSeed2 ? Number(pageSeed2) : state.seedOrange;
+        state.seedBlue = pageSeed1 ? Number(pageSeed1) : state.seedBlue;
+      }
+
+      rememberSeedForCard(state.seedMap || {}, t1.team || {}, raw1, pageSeed1);
+      rememberSeedForCard(state.seedMap || {}, t2.team || {}, raw2, pageSeed2);
+    } catch (err) {
+      console.warn("Could not backfill card seeds:", state?.title, err);
+    }
   }
 
   function setCardHiddenNoMarket(state, hidden) {
