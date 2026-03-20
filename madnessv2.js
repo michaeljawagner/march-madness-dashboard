@@ -2206,15 +2206,15 @@ console.log("[CHART RESPONSE]", {
       if (orangeIsT1) {
         setLogo(state.dom.teamALogoEl, logo1, raw1);
         setLogo(state.dom.teamBLogoEl, logo2, raw2);
-        setSeedText(state.dom.teamASeedEl, seed1);
-        setSeedText(state.dom.teamBSeedEl, seed2);
+        if (seed1) setSeedText(state.dom.teamASeedEl, seed1);
+        if (seed2) setSeedText(state.dom.teamBSeedEl, seed2);
         state.seedOrange = seed1 ? Number(seed1) : state.seedOrange;
         state.seedBlue = seed2 ? Number(seed2) : state.seedBlue;
       } else {
         setLogo(state.dom.teamALogoEl, logo2, raw2);
         setLogo(state.dom.teamBLogoEl, logo1, raw1);
-        setSeedText(state.dom.teamASeedEl, seed2);
-        setSeedText(state.dom.teamBSeedEl, seed1);
+        if (seed2) setSeedText(state.dom.teamASeedEl, seed2);
+        if (seed1) setSeedText(state.dom.teamBSeedEl, seed1);
         state.seedOrange = seed2 ? Number(seed2) : state.seedOrange;
         state.seedBlue = seed1 ? Number(seed1) : state.seedBlue;
       }
