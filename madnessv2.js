@@ -24,7 +24,7 @@ window.addEventListener("load", function () {
   };
 
   let ESPN_BRACKET_SEEDS = {};
-  const GLOBAL_TEAM_SEED_MAP = {};
+  // Seed display should stay card-local to avoid cross-game contamination.
   const scoreboardCache = {};
   const allCardStates = [];
   const HYDRATE_BATCH_SIZE = 3;
@@ -224,20 +224,8 @@ missr|Missouri Tigers|Missouri
   };
 
   function getPreferredSeed(competitor) {
-    const scoreboardSeed =
-      competitor?.tournamentSeed ??
-      competitor?.seed ??
-      competitor?.team?.seed;
-
-    const scoreboardSeedNum = Number(scoreboardSeed);
-    if (Number.isFinite(scoreboardSeedNum) && scoreboardSeedNum >= 1 && scoreboardSeedNum <= 16) {
-      return String(scoreboardSeedNum);
-    }
-
     const bracketSeed = getEspnBracketSeed(competitor?.team || {});
-    if (bracketSeed) {
-      return bracketSeed;
-    }
+    if (bracketSeed) return bracketSeed;
 
     const rawCandidates = [
       competitor?.team?.shortDisplayName || "",
@@ -250,6 +238,16 @@ missr|Missouri Tigers|Missouri
     for (const candidate of rawCandidates) {
       const manualSeed = MANUAL_SEED_LOOKUP[normalizeSeedName(candidate)];
       if (manualSeed) return manualSeed;
+    }
+
+    const scoreboardSeed =
+      competitor?.tournamentSeed ??
+      competitor?.seed ??
+      competitor?.team?.seed;
+
+    const seedNum = Number(scoreboardSeed);
+    if (Number.isFinite(seedNum) && seedNum >= 1 && seedNum <= 16) {
+      return String(seedNum);
     }
 
     return "";
@@ -1587,12 +1585,8 @@ function setStatusLine(state, leftText, rightText) {
     state.teamOrange = raw1;
     state.teamBlue = raw2;
     state.seedMap = {};
-    if (seed1) {
-      state.seedMap[getSeedDisplayKey(raw1)] = String(seed1);
-    }
-    if (seed2) {
-      state.seedMap[getSeedDisplayKey(raw2)] = String(seed2);
-    }
+    if (seed1) state.seedMap[getSeedDisplayKey(raw1)] = String(seed1);
+    if (seed2) state.seedMap[getSeedDisplayKey(raw2)] = String(seed2);
 
     state.dom.teamALabelEl.textContent = state.teamOrange;
     state.dom.teamBLabelEl.textContent = state.teamBlue;
@@ -2081,65 +2075,38 @@ console.log("[CHART RESPONSE]", {
       const logo1 = getTeamLogo(t1.team);
       const logo2 = getTeamLogo(t2.team);
       const seed1Raw = getPreferredSeed(t1);
-const seed2Raw = getPreferredSeed(t2);
-const orangeIsT1 = teamMatchesDisplayName(state.teamOrange, raw1);
+      const seed2Raw = getPreferredSeed(t2);
+      const orangeIsT1 = teamMatchesDisplayName(state.teamOrange, raw1);
 
-const seedMap = state.seedMap || {};
-const normRaw1 = getSeedDisplayKey(raw1);
-const normRaw2 = getSeedDisplayKey(raw2);
+      const seedMap = state.seedMap || {};
+      const normRaw1 = getSeedDisplayKey(raw1);
+      const normRaw2 = getSeedDisplayKey(raw2);
 
-const previousSeedForRaw1 = seedMap[normRaw1] || "";
-const previousSeedForRaw2 = seedMap[normRaw2] || "";
+      const previousSeedForRaw1 = seedMap[normRaw1] || "";
+      const previousSeedForRaw2 = seedMap[normRaw2] || "";
 
-const seed1 = seed1Raw || previousSeedForRaw1 || "";
-const seed2 = seed2Raw || previousSeedForRaw2 || "";
+      const seed1 = seed1Raw || previousSeedForRaw1 || "";
+      const seed2 = seed2Raw || previousSeedForRaw2 || "";
 
-if (seed1) {
-  seedMap[normRaw1] = String(seed1);
-}
-if (seed2) {
-  seedMap[normRaw2] = String(seed2);
-}
-state.seedMap = seedMap;
-
-console.log("[SEED DEBUG]", {
-  title: state.title,
-  raw1,
-  raw2,
-  seed1Raw,
-  seed2Raw,
-  previousSeedForRaw1,
-  previousSeedForRaw2,
-  finalSeed1: seed1,
-  finalSeed2: seed2,
-  orangeIsT1,
-  seedMap: state.seedMap
-});
+      if (seed1) seedMap[normRaw1] = String(seed1);
+      if (seed2) seedMap[normRaw2] = String(seed2);
+      state.seedMap = seedMap;
 
       if (orangeIsT1) {
         setLogo(state.dom.teamALogoEl, logo1, raw1);
         setLogo(state.dom.teamBLogoEl, logo2, raw2);
         setSeedText(state.dom.teamASeedEl, seed1);
         setSeedText(state.dom.teamBSeedEl, seed2);
-        if (seed1) state.seedOrange = Number(seed1);
-        if (seed2) state.seedBlue = Number(seed2);
+        state.seedOrange = seed1 ? Number(seed1) : state.seedOrange;
+        state.seedBlue = seed2 ? Number(seed2) : state.seedBlue;
       } else {
         setLogo(state.dom.teamALogoEl, logo2, raw2);
         setLogo(state.dom.teamBLogoEl, logo1, raw1);
         setSeedText(state.dom.teamASeedEl, seed2);
         setSeedText(state.dom.teamBSeedEl, seed1);
-        if (seed2) state.seedOrange = Number(seed2);
-        if (seed1) state.seedBlue = Number(seed1);
+        state.seedOrange = seed2 ? Number(seed2) : state.seedOrange;
+        state.seedBlue = seed1 ? Number(seed1) : state.seedBlue;
       }
-
-      // keep canonical orange/blue seed numbers aligned to the card team identities
-if (orangeIsT1) {
-  state.seedOrange = seed1 ? Number(seed1) : state.seedOrange;
-  state.seedBlue = seed2 ? Number(seed2) : state.seedBlue;
-} else {
-  state.seedOrange = seed2 ? Number(seed2) : state.seedOrange;
-  state.seedBlue = seed1 ? Number(seed1) : state.seedBlue;
-}
 
       state.dom.teamALabelEl.textContent = state.teamOrange;
       state.dom.teamBLabelEl.textContent = state.teamBlue;
