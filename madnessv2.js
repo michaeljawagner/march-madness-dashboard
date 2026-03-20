@@ -195,7 +195,7 @@ missr|Missouri Tigers|Missouri
       .trim();
   }
 
-  const MANUAL_SEED_LOOKUP = {
+  const TEAM_SEED_LOOKUP = {
     [normalizeSeedName("Howard")]: "16",
     [normalizeSeedName("Howard Bison")]: "16",
     [normalizeSeedName("UMBC")]: "16",
@@ -211,31 +211,12 @@ missr|Missouri Tigers|Missouri
     [normalizeSeedName("Prairie View A&M")]: "16",
     [normalizeSeedName("Prairie View A&M Panthers")]: "16",
 
-    [normalizeSeedName("SMU")]: "11",
-    [normalizeSeedName("SMU Mustangs")]: "11",
-    [normalizeSeedName("Miami (OH)")]: "11",
-    [normalizeSeedName("Miami (OH) RedHawks")]: "11",
-    [normalizeSeedName("Miami OH")]: "11"
-  };
-
-  const FORCE_TEAM_SEEDS = {
-    [normalizeSeedName("Howard")]: "16",
-    [normalizeSeedName("Howard Bison")]: "16",
-    [normalizeSeedName("UMBC")]: "16",
-    [normalizeSeedName("UMBC Retrievers")]: "16",
-    [normalizeSeedName("NC State")]: "11",
-    [normalizeSeedName("NC State Wolfpack")]: "11",
-    [normalizeSeedName("Texas")]: "11",
-    [normalizeSeedName("Texas Longhorns")]: "11",
-    [normalizeSeedName("Lehigh")]: "16",
-    [normalizeSeedName("Lehigh Mountain Hawks")]: "16",
-    [normalizeSeedName("Prairie View A&M")]: "16",
-    [normalizeSeedName("Prairie View A&M Panthers")]: "16",
     [normalizeSeedName("SMU")]: "11",
     [normalizeSeedName("SMU Mustangs")]: "11",
     [normalizeSeedName("Miami (OH)")]: "11",
     [normalizeSeedName("Miami (OH) RedHawks")]: "11",
     [normalizeSeedName("Miami OH")]: "11",
+
     [normalizeSeedName("Nebraska")]: "4",
     [normalizeSeedName("Nebraska Cornhuskers")]: "4",
     [normalizeSeedName("Troy")]: "13",
@@ -292,6 +273,7 @@ missr|Missouri Tigers|Missouri
     [normalizeSeedName("Texas AM")]: "10"
   };
 
+
   function getForcedSeed(teamObjOrName) {
     const candidates = typeof teamObjOrName === "string"
       ? [teamObjOrName]
@@ -299,7 +281,7 @@ missr|Missouri Tigers|Missouri
 
     for (const candidate of candidates) {
       const key = normalizeSeedName(candidate);
-      if (FORCE_TEAM_SEEDS[key]) return FORCE_TEAM_SEEDS[key];
+      if (TEAM_SEED_LOOKUP[key]) return TEAM_SEED_LOOKUP[key];
     }
 
     return "";
@@ -321,7 +303,7 @@ missr|Missouri Tigers|Missouri
     ].filter(Boolean);
 
     for (const candidate of rawCandidates) {
-      const manualSeed = MANUAL_SEED_LOOKUP[normalizeSeedName(candidate)];
+      const manualSeed = TEAM_SEED_LOOKUP[normalizeSeedName(candidate)];
       if (manualSeed) return manualSeed;
     }
 
@@ -423,13 +405,13 @@ missr|Missouri Tigers|Missouri
 
     if (typeof teamObjOrName === "string") {
       const key = normalizeSeedName(teamObjOrName);
-      return !!ESPN_BRACKET_SEEDS[key] || !!MANUAL_SEED_LOOKUP[key];
+      return !!ESPN_BRACKET_SEEDS[key] || !!TEAM_SEED_LOOKUP[key];
     }
 
     const candidates = buildSeedNameCandidates(teamObjOrName);
     for (const candidate of candidates) {
       const key = normalizeSeedName(candidate);
-      if (ESPN_BRACKET_SEEDS[key] || MANUAL_SEED_LOOKUP[key]) return true;
+      if (ESPN_BRACKET_SEEDS[key] || TEAM_SEED_LOOKUP[key]) return true;
     }
 
     return false;
