@@ -195,7 +195,7 @@ missr|Missouri Tigers|Missouri
       .trim();
   }
 
-  const TEAM_SEED_LOOKUP = {
+  const MANUAL_SEED_LOOKUP = {
     [normalizeSeedName("Howard")]: "16",
     [normalizeSeedName("Howard Bison")]: "16",
     [normalizeSeedName("UMBC")]: "16",
@@ -215,176 +215,37 @@ missr|Missouri Tigers|Missouri
     [normalizeSeedName("SMU Mustangs")]: "11",
     [normalizeSeedName("Miami (OH)")]: "11",
     [normalizeSeedName("Miami (OH) RedHawks")]: "11",
-    [normalizeSeedName("Miami OH")]: "11",
-
-    [normalizeSeedName("Nebraska")]: "4",
-    [normalizeSeedName("Nebraska Cornhuskers")]: "4",
-    [normalizeSeedName("Troy")]: "13",
-    [normalizeSeedName("Troy Trojans")]: "13",
-    [normalizeSeedName("Michigan")]: "1",
-    [normalizeSeedName("Michigan Wolverines")]: "1",
-    [normalizeSeedName("VCU")]: "11",
-    [normalizeSeedName("VCU Rams")]: "11",
-    [normalizeSeedName("North Carolina")]: "6",
-    [normalizeSeedName("North Carolina Tar Heels")]: "6",
-    [normalizeSeedName("Ohio State")]: "8",
-    [normalizeSeedName("Ohio State Buckeyes")]: "8",
-    [normalizeSeedName("TCU")]: "9",
-    [normalizeSeedName("TCU Horned Frogs")]: "9",
-    [normalizeSeedName("Louisville")]: "6",
-    [normalizeSeedName("Louisville Cardinals")]: "6",
-    [normalizeSeedName("South Florida")]: "11",
-    [normalizeSeedName("South Florida Bulls")]: "11",
-    [normalizeSeedName("USF")]: "11",
-    [normalizeSeedName("Wisconsin")]: "5",
-    [normalizeSeedName("Wisconsin Badgers")]: "5",
-    [normalizeSeedName("High Point")]: "12",
-    [normalizeSeedName("High Point Panthers")]: "12",
-    [normalizeSeedName("Duke")]: "1",
-    [normalizeSeedName("Duke Blue Devils")]: "1",
-    [normalizeSeedName("Siena")]: "16",
-    [normalizeSeedName("Siena Saints")]: "16",
-    [normalizeSeedName("Vanderbilt")]: "5",
-    [normalizeSeedName("Vanderbilt Commodores")]: "5",
-    [normalizeSeedName("McNeese")]: "12",
-    [normalizeSeedName("McNeese Cowboys")]: "12",
-    [normalizeSeedName("McNeese State")]: "12",
-    [normalizeSeedName("McNeese State Cowboys")]: "12",
-    [normalizeSeedName("Michigan State")]: "3",
-    [normalizeSeedName("Michigan State Spartans")]: "3",
-    [normalizeSeedName("Michigan St")]: "3",
-    [normalizeSeedName("North Dakota State")]: "14",
-    [normalizeSeedName("North Dakota State Bison")]: "14",
-    [normalizeSeedName("N Dakota State")]: "14",
-    [normalizeSeedName("Arkansas")]: "4",
-    [normalizeSeedName("Arkansas Razorbacks")]: "4",
-    [normalizeSeedName("Hawaii")]: "13",
-    [normalizeSeedName("Hawai'i")]: "13",
-    [normalizeSeedName("Hawaii Rainbow Warriors")]: "13",
-    [normalizeSeedName("Hawai'i Rainbow Warriors")]: "13",
-    [normalizeSeedName("BYU")]: "6",
-    [normalizeSeedName("BYU Cougars")]: "6",
-    [normalizeSeedName("Saint Mary's")]: "7",
-    [normalizeSeedName("St. Mary's")]: "7",
-    [normalizeSeedName("St Mary's")]: "7",
-    [normalizeSeedName("Saint Mary's Gaels")]: "7",
-    [normalizeSeedName("Texas A&M")]: "10",
-    [normalizeSeedName("Texas A&M Aggies")]: "10",
-    [normalizeSeedName("Texas AM")]: "10",
-
-    // --- 2026 ESPN BRACKET SEED MAP ENTRIES ---
-    [normalizeSeedName("St John's")]: "5",
-    [normalizeSeedName("St. John's")]: "5",
-    [normalizeSeedName("St Johns")]: "5",
-    [normalizeSeedName("Saint John's")]: "5",
-    [normalizeSeedName("Saint John's Red Storm")]: "5",
-    [normalizeSeedName("Northern Iowa")]: "12",
-    [normalizeSeedName("Northern Iowa Panthers")]: "12",
-    [normalizeSeedName("Kansas")]: "4",
-    [normalizeSeedName("Kansas Jayhawks")]: "4",
-    [normalizeSeedName("California Baptist")]: "13",
-    [normalizeSeedName("Cal Baptist")]: "13",
-    [normalizeSeedName("California Baptist Lancers")]: "13",
-    [normalizeSeedName("UCLA")]: "7",
-    [normalizeSeedName("UCLA Bruins")]: "7",
-    [normalizeSeedName("UCF")]: "10",
-    [normalizeSeedName("UCF Knights")]: "10",
-    [normalizeSeedName("UConn")]: "2",
-    [normalizeSeedName("Connecticut")]: "2",
-    [normalizeSeedName("Connecticut Huskies")]: "2",
-    [normalizeSeedName("UConn Huskies")]: "2",
-    [normalizeSeedName("Furman")]: "15",
-    [normalizeSeedName("Furman Paladins")]: "15",
-    [normalizeSeedName("Arizona")]: "1",
-    [normalizeSeedName("Arizona Wildcats")]: "1",
-    [normalizeSeedName("Long Island")]: "16",
-    [normalizeSeedName("LIU")]: "16",
-    [normalizeSeedName("LIU Brooklyn")]: "16",
-    [normalizeSeedName("Long Island University")]: "16",
-    [normalizeSeedName("Long Island University Sharks")]: "16",
-    [normalizeSeedName("LIU Brooklyn Sharks")]: "16",
-    [normalizeSeedName("Villanova")]: "8",
-    [normalizeSeedName("Villanova Wildcats")]: "8",
-    [normalizeSeedName("Utah State")]: "9",
-    [normalizeSeedName("Utah State Aggies")]: "9",
-    [normalizeSeedName("Gonzaga")]: "3",
-    [normalizeSeedName("Gonzaga Bulldogs")]: "3",
-    [normalizeSeedName("Kennesaw State")]: "14",
-    [normalizeSeedName("Kennesaw State Owls")]: "14",
-    [normalizeSeedName("Miami")]: "7",
-    [normalizeSeedName("Miami Hurricanes")]: "7",
-    [normalizeSeedName("Missouri")]: "10",
-    [normalizeSeedName("Missouri Tigers")]: "10",
-    [normalizeSeedName("Purdue")]: "2",
-    [normalizeSeedName("Purdue Boilermakers")]: "2",
-    [normalizeSeedName("Queens")]: "15",
-    [normalizeSeedName("Queens Royals")]: "15",
-    [normalizeSeedName("Queens University")]: "15",
-    [normalizeSeedName("Queens University Royals")]: "15",
-    [normalizeSeedName("Florida")]: "1",
-    [normalizeSeedName("Florida Gators")]: "1",
-    [normalizeSeedName("Prairie View")]: "16",
-    [normalizeSeedName("Clemson")]: "8",
-    [normalizeSeedName("Clemson Tigers")]: "8",
-    [normalizeSeedName("Iowa")]: "9",
-    [normalizeSeedName("Iowa Hawkeyes")]: "9",
-    [normalizeSeedName("Illinois")]: "3",
-    [normalizeSeedName("Illinois Fighting Illini")]: "3",
-    [normalizeSeedName("Penn")]: "14",
-    [normalizeSeedName("Penn Quakers")]: "14",
-    [normalizeSeedName("Pennsylvania")]: "14",
-    [normalizeSeedName("Pennsylvania Quakers")]: "14",
-    [normalizeSeedName("Houston")]: "2",
-    [normalizeSeedName("Houston Cougars")]: "2",
-    [normalizeSeedName("Idaho")]: "15",
-    [normalizeSeedName("Idaho Vandals")]: "15",
-    [normalizeSeedName("Georgia")]: "8",
-    [normalizeSeedName("Georgia Bulldogs")]: "8",
-    [normalizeSeedName("Saint Louis")]: "9",
-    [normalizeSeedName("St. Louis")]: "9",
-    [normalizeSeedName("St Louis")]: "9",
-    [normalizeSeedName("Saint Louis Billikens")]: "9",
-    [normalizeSeedName("Texas Tech")]: "5",
-    [normalizeSeedName("Texas Tech Red Raiders")]: "5",
-    [normalizeSeedName("Akron")]: "12",
-    [normalizeSeedName("Akron Zips")]: "12",
-    [normalizeSeedName("Alabama")]: "4",
-    [normalizeSeedName("Alabama Crimson Tide")]: "4",
-    [normalizeSeedName("Hofstra")]: "13",
-    [normalizeSeedName("Hofstra Pride")]: "13",
-    [normalizeSeedName("Tennessee")]: "6",
-    [normalizeSeedName("Tennessee Volunteers")]: "6",
-    [normalizeSeedName("Virginia")]: "3",
-    [normalizeSeedName("Virginia Cavaliers")]: "3",
-    [normalizeSeedName("Wright State")]: "14",
-    [normalizeSeedName("Wright State Raiders")]: "14",
-    [normalizeSeedName("Kentucky")]: "7",
-    [normalizeSeedName("Kentucky Wildcats")]: "7",
-    [normalizeSeedName("Santa Clara")]: "10",
-    [normalizeSeedName("Santa Clara Broncos")]: "10",
-    [normalizeSeedName("Iowa State")]: "2",
-    [normalizeSeedName("Iowa State Cyclones")]: "2",
-    [normalizeSeedName("Tennessee State")]: "15",
-    [normalizeSeedName("Tennessee State Tigers")]: "15"
+    [normalizeSeedName("Miami OH")]: "11"
   };
 
+  function getPreferredSeed(competitor) {
+    const bracketSeed = getEspnBracketSeed(competitor?.team || {});
+    if (bracketSeed) return bracketSeed;
 
-  function getForcedSeed(teamObjOrName) {
-    const candidates = typeof teamObjOrName === "string"
-      ? [teamObjOrName]
-      : buildSeedNameCandidates(teamObjOrName);
+    const rawCandidates = [
+      competitor?.team?.shortDisplayName || "",
+      competitor?.team?.displayName || "",
+      competitor?.team?.name || "",
+      competitor?.team?.location || "",
+      competitor?.team?.abbreviation || ""
+    ].filter(Boolean);
 
-    for (const candidate of candidates) {
-      const key = normalizeSeedName(candidate);
-      if (TEAM_SEED_LOOKUP[key]) return TEAM_SEED_LOOKUP[key];
+    for (const candidate of rawCandidates) {
+      const manualSeed = MANUAL_SEED_LOOKUP[normalizeSeedName(candidate)];
+      if (manualSeed) return manualSeed;
+    }
+
+    const scoreboardSeed =
+      competitor?.tournamentSeed ??
+      competitor?.seed ??
+      competitor?.team?.seed;
+
+    const seedNum = Number(scoreboardSeed);
+    if (Number.isFinite(seedNum) && seedNum >= 1 && seedNum <= 16) {
+      return String(seedNum);
     }
 
     return "";
-  }
-
-  function getPreferredSeed(competitor) {
-    const forcedSeed = getForcedSeed(competitor?.team || {});
-    return forcedSeed || "";
   }
 
   function buildSeedNameCandidates(teamObj) {
@@ -472,13 +333,13 @@ missr|Missouri Tigers|Missouri
 
     if (typeof teamObjOrName === "string") {
       const key = normalizeSeedName(teamObjOrName);
-      return !!TEAM_SEED_LOOKUP[key];
+      return !!ESPN_BRACKET_SEEDS[key] || !!MANUAL_SEED_LOOKUP[key];
     }
 
     const candidates = buildSeedNameCandidates(teamObjOrName);
     for (const candidate of candidates) {
       const key = normalizeSeedName(candidate);
-      if (TEAM_SEED_LOOKUP[key]) return true;
+      if (ESPN_BRACKET_SEEDS[key] || MANUAL_SEED_LOOKUP[key]) return true;
     }
 
     return false;
@@ -1131,28 +992,6 @@ function setStatusLine(state, leftText, rightText) {
     return plateauStart === history.length - 1 ? history : history.slice(0, plateauStart + 1);
   }
 
-  function appendResolvedFinalPoint(history, state) {
-  if (!Array.isArray(history) || !history.length || !state) return history;
-
-  const scores = getScoreNumbers(state);
-  if (!Number.isFinite(scores.a) || !Number.isFinite(scores.b) || scores.a === scores.b) {
-    return history;
-  }
-
-  const winnerIsOrange = scores.a > scores.b;
-  const resolvedProb = winnerIsOrange ? 1 : 0;
-  const lastPoint = history[history.length - 1] || {};
-  const lastProb = Number(lastPoint.p);
-  const lastTs = Number(lastPoint.t || 0);
-
-  if (Number.isFinite(lastProb) && Math.abs(lastProb - resolvedProb) <= 0.0005) {
-    return history;
-  }
-
-  const nextTs = lastTs > 0 ? (lastTs + 1) : Math.floor(Date.now() / 1000);
-  return history.concat([{ t: nextTs, p: resolvedProb }]);
-}
-
   function primaryGameMarket(markets, espnGame) {
     const list = Array.isArray(markets) ? markets : [];
 
@@ -1300,21 +1139,8 @@ function setStatusLine(state, leftText, rightText) {
   }
 
   function getMarchMadnessRound(game) {
-  const textRound = getRoundFromText(game);
-  const fallback = getFallbackRoundByDate(game.date);
-  const result = textRound || fallback;
-
-  if (!result) {
-    console.warn("[MISSING ROUND]", {
-      game: game?.name || game?.shortName || "",
-      date: game?.date || "",
-      textRound: textRound,
-      fallbackRound: fallback
-    });
+    return getRoundFromText(game) || getFallbackRoundByDate(game.date);
   }
-
-  return result;
-}
 
  function gameHasBracketSeedsOrTbd(game) {
   const competitors = game?.competitions?.[0]?.competitors || [];
@@ -1731,18 +1557,12 @@ function setStatusLine(state, leftText, rightText) {
   }
 
   async function hydrateCardMarket(state, usedEventSlugs) {
-console.log("[HYDRATE START]", state.title);
-const espnGame = state.espnGame;
-setCardHiddenNoMarket(state, false);
+  const espnGame = state.espnGame;
+  setCardHiddenNoMarket(state, false);
 
   try {
     const eventCandidates = await fetchEventCandidates(espnGame);
-console.log("[EVENT CANDIDATES]", {
-  title: state.title,
-  count: eventCandidates.length,
-  slugs: eventCandidates.map(function (e) { return e.slug; })
-});
-const eventData = findBestEventForEspnGame(espnGame, eventCandidates, usedEventSlugs);
+    const eventData = findBestEventForEspnGame(espnGame, eventCandidates, usedEventSlugs);
     if (!eventData) {
       if (!isKnownBracketTeam(espnGame.team1) || !isKnownBracketTeam(espnGame.team2)) {
         setCardHiddenNoMarket(state, true);
@@ -1919,139 +1739,6 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
     console.log("Stopped", state.title, reason);
   }
 
-  function lockChart(state, history, reason) {
-    if (state.chartLocked) return;
-    state.chartLocked = true;
-    state.lockedHistory = Array.isArray(history) ? history.slice() : null;
-
-    if (state.lockedHistory && state.lockedHistory.length) {
-      updateChartForCard(state, state.lockedHistory);
-      setChartVisible(state, true);
-    }
-
-    saveLockedChartToStorage(state);
-
-    if (reason) {
-      console.log("Chart locked", state.title, reason);
-    }
-  }
-
-  function getLockedChartStorageKey(gameId) {
-    return "pm_locked_chart_" + String(gameId || "");
-  }
-
-  function getLockedChartPayload(state) {
-    return {
-      gameId: String(state.espnGameId),
-      title: state.title || "",
-      savedAt: Date.now(),
-      teamOrange: state.teamOrange || "",
-      teamBlue: state.teamBlue || "",
-      excitement: Number.isFinite(Number(state.excitement)) ? Number(state.excitement) : null,
-      latestHistory: Array.isArray(state.latestHistory) ? state.latestHistory : null,
-      latestDisplayHistory: Array.isArray(state.latestDisplayHistory) ? state.latestDisplayHistory : null,
-      lockedHistory: state.lockedHistory
-    };
-  }
-
-  function applyLockedChartPayload(state, payload) {
-    const lockedHistory = Array.isArray(payload?.lockedHistory) ? payload.lockedHistory : null;
-    if (!lockedHistory || !lockedHistory.length) return false;
-
-    state.chartLocked = true;
-    state.lockedHistory = lockedHistory.slice();
-    state.latestHistory = Array.isArray(payload?.latestHistory) && payload.latestHistory.length
-      ? payload.latestHistory
-      : lockedHistory.slice();
-    state.latestDisplayHistory = Array.isArray(payload?.latestDisplayHistory) && payload.latestDisplayHistory.length
-      ? payload.latestDisplayHistory
-      : lockedHistory.slice();
-
-    if (Number.isFinite(Number(payload?.excitement))) {
-      state.excitement = Number(payload.excitement);
-    }
-
-    updateChartForCard(state, state.lockedHistory);
-    setChartVisible(state, true);
-    return true;
-  }
-
-  function saveLockedChartToStorage(state) {
-    if (!state || !state.espnGameId || !state.lockedHistory || !state.lockedHistory.length) return;
-
-    try {
-      localStorage.setItem(
-        getLockedChartStorageKey(state.espnGameId),
-        JSON.stringify(getLockedChartPayload(state))
-      );
-    } catch (err) {
-      console.warn("Could not persist locked chart:", state.title, err);
-    }
-  }
-
-  async function saveLockedChartToWorker(state) {
-    if (!state || !state.espnGameId || !state.lockedHistory || !state.lockedHistory.length) return false;
-
-    try {
-      const res = await fetch(excitementWorkerBase + "/locked-chart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(getLockedChartPayload(state))
-      });
-
-      return !!res.ok;
-    } catch (err) {
-      console.warn("Could not persist locked chart remotely:", state.title, err);
-      return false;
-    }
-  }
-
-  async function saveLockedChartEverywhere(state) {
-    saveLockedChartToStorage(state);
-    await saveLockedChartToWorker(state);
-  }
-
-  function loadLockedChartFromStorage(state) {
-    if (!state || !state.espnGameId) return false;
-
-    try {
-      const raw = localStorage.getItem(getLockedChartStorageKey(state.espnGameId));
-      if (!raw) return false;
-
-      const payload = JSON.parse(raw);
-      return applyLockedChartPayload(state, payload);
-    } catch (err) {
-      console.warn("Could not restore locked chart:", state.title, err);
-      return false;
-    }
-  }
-
-  async function loadLockedChartFromWorker(state) {
-    if (!state || !state.espnGameId) return false;
-
-    try {
-      const res = await fetch(
-        excitementWorkerBase + "/locked-chart?gameId=" + encodeURIComponent(state.espnGameId)
-      );
-      if (!res.ok) return false;
-
-      const data = await res.json();
-      const payload = data?.chart || data?.lockedChart || data;
-      return applyLockedChartPayload(state, payload);
-    } catch (err) {
-      console.warn("Could not restore locked chart remotely:", state.title, err);
-      return false;
-    }
-  }
-
-  async function loadLockedChartEverywhere(state) {
-    if (await loadLockedChartFromWorker(state)) {
-      saveLockedChartToStorage(state);
-      return true;
-    }
-    return loadLockedChartFromStorage(state);
-  }
-
   async function isCardMarketClosed(state) {
     if (!state.hasMarket || !state.marketSlug) return false;
     try {
@@ -2072,56 +1759,30 @@ const startTsCandidate = tipTsCandidate - (60 * 60);
 
   async function refreshCardChart(state) {
     if (!state.hasMarket || !state.tokenOrange || !state.startTs) {
-      if (await loadLockedChartEverywhere(state)) {
-        return;
-      }
       setChartVisible(state, false);
       return;
     }
 
-   if (state.chartLocked) {
-  if (state.lockedHistory && state.lockedHistory.length) {
-    updateChartForCard(state, state.lockedHistory);
-    setChartVisible(state, true);
-  } else if (state.chart) {
-    setChartVisible(state, true);
-  }
-  return;
-}
-
-if (state.finished) {
-  if (state.chart) {
-    setChartVisible(state, true);
-  }
-  return;
-}
+    if (state.finished) {
+      if (state.chart) {
+        setChartVisible(state, true);
+      }
+      return;
+    }
 
     const phase = getGamePhase(state.espnGame.game);
     if (phase === "upcoming") setChartVisible(state, false);
     else setChartVisible(state, true);
 
     const endTs = Math.floor(Date.now() / 1000);
-const url =
-  "https://clob.polymarket.com/prices-history?market=" +
-  encodeURIComponent(state.tokenOrange) +
-  "&startTs=" + state.startTs +
-  "&endTs=" + endTs +
-  "&fidelity=0.5";
+    const url =
+      "https://clob.polymarket.com/prices-history?market=" +
+      encodeURIComponent(state.tokenOrange) +
+      "&startTs=" + state.startTs +
+      "&endTs=" + endTs +
+      "&fidelity=0.5";
 
-console.log("[CHART FETCH]", {
-  title: state.title,
-  token: state.tokenOrange,
-  startTs: state.startTs,
-  displayStartTs: state.displayStartTs,
-  now: endTs
-});
-
-const historyRes = await fetch(proxied(url)).then(r => r.json());
-
-console.log("[CHART RESPONSE]", {
-  title: state.title,
-  points: historyRes?.history?.length || 0
-});
+    const historyRes = await fetch(proxied(url)).then(r => r.json());
     let history = Array.isArray(historyRes.history) ? historyRes.history : [];
     if (!history.length) {
       if (phase !== "upcoming") setChartVisible(state, false);
@@ -2170,18 +1831,9 @@ console.log("[CHART RESPONSE]", {
     await isCardMarketClosed(state);
   }
 
- async function refreshCardScoreboard(state) {
-  try {
-    console.log("[SCOREBOARD REFRESH START]", state.title);
-
-    const freshGame = await findFreshGameAcrossDates(state, true);
-
-    console.log("[SCOREBOARD RESULT]", {
-      title: state.title,
-      found: !!freshGame,
-      status: freshGame?.status?.type?.state,
-      date: freshGame?.date
-    });
+  async function refreshCardScoreboard(state) {
+    try {
+      const freshGame = await findFreshGameAcrossDates(state, true);
 
       if (!freshGame) {
         renderFallbackStatus(state, state.espnGame.game);
@@ -2257,43 +1909,20 @@ console.log("[CHART RESPONSE]", {
           fetchHistoricHistory(state.espnGameId)
         ]);
 
-        if (await loadLockedChartEverywhere(state)) {
-          if (summary && summary.finalExcitement != null) {
-            state.excitement = Number(summary.finalExcitement);
-          }
-
-          if (summary && summary.finalExcitement != null) {
-            setStatusLine(
-              state,
-              "FINAL",
-              "EXC " + Number(summary.finalExcitement).toFixed(1) +
-              " • PEAK " + Number(summary.peakExcitement || summary.finalExcitement).toFixed(1)
-            );
-          } else {
-            const fallbackExc = state.excitement != null ? state.excitement : 2.5;
-            setStatusLine(state, "FINAL", "EXC " + Number(fallbackExc).toFixed(1));
-          }
-
-          setChartVisible(state, true);
-          return;
-        }
-
         let hasHistoricChart = false;
         let finalChartSource = state.chart ? "existing-live-chart" : null;
 
-       if (historicHistory && Array.isArray(historicHistory.snapshots) && historicHistory.snapshots.length) {
-  let chartHistory = historicHistory.snapshots
-    .map(function (snap) {
-      return {
-        t: Number(snap.historyTs || 0),
-        p: Number(snap.probA)
-      };
-    })
-    .filter(function (point) {
-      return Number.isFinite(point.t) && Number.isFinite(point.p);
-    });
-
-  chartHistory = appendResolvedFinalPoint(chartHistory, state);
+        if (historicHistory && Array.isArray(historicHistory.snapshots) && historicHistory.snapshots.length) {
+          const chartHistory = historicHistory.snapshots
+            .map(function (snap) {
+              return {
+                t: Number(snap.historyTs || 0),
+                p: Number(snap.probA)
+              };
+            })
+            .filter(function (point) {
+              return Number.isFinite(point.t) && Number.isFinite(point.p);
+            });
 
           if (chartHistory.length) {
             let historicExcitement = getExcitementScore(chartHistory, state);
@@ -2328,43 +1957,20 @@ console.log("[CHART RESPONSE]", {
           }
         }
 
-       if (!hasHistoricChart && !state.chart && state.hasMarket && state.tokenOrange && state.startTs) {
-  try {
-    await refreshCardChart(state);
-
-    if (Array.isArray(state.latestDisplayHistory) && state.latestDisplayHistory.length) {
-      const resolvedDisplayHistory = appendResolvedFinalPoint(state.latestDisplayHistory, state);
-      const resolvedFullHistory = Array.isArray(state.latestHistory) && state.latestHistory.length
-        ? appendResolvedFinalPoint(state.latestHistory, state)
-        : resolvedDisplayHistory;
-
-      state.latestDisplayHistory = resolvedDisplayHistory;
-      state.latestHistory = resolvedFullHistory;
-      updateChartForCard(state, resolvedDisplayHistory);
-    }
-
-    hasHistoricChart = !!state.chart;
-    if (hasHistoricChart) {
-      finalChartSource = "final-live-market-fallback";
-    }
-  } catch (err) {
-    console.error("Final chart backfill failed:", state.title, err);
-  }
-} else if (!hasHistoricChart && state.chart) {
-  if (Array.isArray(state.latestDisplayHistory) && state.latestDisplayHistory.length) {
-    const resolvedDisplayHistory = appendResolvedFinalPoint(state.latestDisplayHistory, state);
-    const resolvedFullHistory = Array.isArray(state.latestHistory) && state.latestHistory.length
-      ? appendResolvedFinalPoint(state.latestHistory, state)
-      : resolvedDisplayHistory;
-
-    state.latestDisplayHistory = resolvedDisplayHistory;
-    state.latestHistory = resolvedFullHistory;
-    updateChartForCard(state, resolvedDisplayHistory);
-  }
-
-  hasHistoricChart = true;
-  finalChartSource = finalChartSource || "existing-live-chart";
-}
+        if (!hasHistoricChart && !state.chart && state.hasMarket && state.tokenOrange && state.startTs) {
+          try {
+            await refreshCardChart(state);
+            hasHistoricChart = !!state.chart;
+            if (hasHistoricChart) {
+              finalChartSource = "final-live-market-fallback";
+            }
+          } catch (err) {
+            console.error("Final chart backfill failed:", state.title, err);
+          }
+        } else if (!hasHistoricChart && state.chart) {
+          hasHistoricChart = true;
+          finalChartSource = finalChartSource || "existing-live-chart";
+        }
 
         console.log("[FINAL CHART SOURCE]", {
           espnGameId: state.espnGameId,
@@ -2380,44 +1986,20 @@ console.log("[CHART RESPONSE]", {
           excitement: state.excitement
         });
 
-        const historyToLock =
-  (Array.isArray(state.latestDisplayHistory) && state.latestDisplayHistory.length && state.latestDisplayHistory) ||
-  (Array.isArray(state.latestHistory) && state.latestHistory.length && state.latestHistory) ||
-  null;
-
-if (historyToLock) {
-  const shouldPersistLockedChart = !state.chartLocked;
-  lockChart(state, historyToLock, "FINAL");
-  if (shouldPersistLockedChart) {
-    await saveLockedChartEverywhere(state);
-  }
-}
-
-if (Array.isArray(state.latestDisplayHistory) && state.latestDisplayHistory.length) {
-  const resolvedDisplayHistory = appendResolvedFinalPoint(state.latestDisplayHistory, state);
-  const resolvedFullHistory = Array.isArray(state.latestHistory) && state.latestHistory.length
-    ? appendResolvedFinalPoint(state.latestHistory, state)
-    : resolvedDisplayHistory;
-
-  state.latestDisplayHistory = resolvedDisplayHistory;
-  state.latestHistory = resolvedFullHistory;
-  if (state.chart) updateChartForCard(state, resolvedDisplayHistory);
-}
-
-if (summary && summary.finalExcitement != null) {
-  setStatusLine(
-    state,
-    "FINAL",
-    "EXC " + Number(summary.finalExcitement).toFixed(1) +
-    " • PEAK " + Number(summary.peakExcitement || summary.finalExcitement).toFixed(1)
-  );
-  setChartVisible(state, hasHistoricChart || state.hasMarket);
-} else {
-  const fallbackExc = state.excitement != null ? state.excitement : 2.5;
-  setStatusLine(state, "FINAL", "EXC " + Number(fallbackExc).toFixed(1));
-  setChartVisible(state, hasHistoricChart || state.hasMarket);
-}
-return;
+        if (summary && summary.finalExcitement != null) {
+          setStatusLine(
+            state,
+            "FINAL",
+            "EXC " + Number(summary.finalExcitement).toFixed(1) +
+            " • PEAK " + Number(summary.peakExcitement || summary.finalExcitement).toFixed(1)
+          );
+          setChartVisible(state, hasHistoricChart || state.hasMarket);
+        } else {
+          const fallbackExc = state.excitement != null ? state.excitement : 2.5;
+          setStatusLine(state, "FINAL", "EXC " + Number(fallbackExc).toFixed(1));
+          setChartVisible(state, hasHistoricChart || state.hasMarket);
+        }
+        return;
       }
 
       setLiveOrFinalCompact(state, badgeText, statusText, state.hasMarket);
@@ -2463,16 +2045,7 @@ return;
 
     const tourneyGames = allEspnGames
       .filter(function (g) {
-  const game = g.game;
-
-  console.log("[FILTER CHECK]", {
-    title: g.title,
-    phase: getGamePhase(game),
-    roundFromText: getRoundFromText(game),
-    fallbackRound: getFallbackRoundByDate(game.date),
-    isTournament: isMensMarchMadnessGame(game)
-  });
-        
+        const game = g.game;
 
         // 🔒 HARD FILTER: only allow games where BOTH teams exist in our lookup
         const competitors = game?.competitions?.[0]?.competitors || [];
@@ -2543,11 +2116,9 @@ return;
       return;
     }
 
-   const roundsPresent = ROUND_ORDER.filter(roundName =>
-  tourneyGames.some(g => g.round === roundName)
-);
-
-console.log("[ROUNDS PRESENT]", roundsPresent);
+    const roundsPresent = ROUND_ORDER.filter(roundName =>
+      tourneyGames.some(g => g.round === roundName)
+    );
 
     buildTabs(roundsPresent);
 
@@ -2580,8 +2151,6 @@ console.log("[ROUNDS PRESENT]", roundsPresent);
           lastHistoryTs: null,
           latestHistory: null,
           latestDisplayHistory: null,
-          lockedHistory: null,
-          chartLocked: false,
           lastPregameOddsRefreshAt: null,
           finished: false,
           hasMarket: false,
@@ -2654,7 +2223,7 @@ console.log("[ROUNDS PRESENT]", roundsPresent);
 
         const fallbackExc = state.excitement != null ? state.excitement : 2.5;
         setStatusLine(state, "FINAL", "EXC " + Number(fallbackExc).toFixed(1));
-        setChartVisible(state, state.hasMarket || !!state.chart || !!state.chartLocked);
+        setChartVisible(state, state.hasMarket || !!state.chart);
 
         stopCard(state, "Final game - stop polling");
         continue;
