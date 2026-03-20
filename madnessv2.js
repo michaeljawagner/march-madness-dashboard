@@ -1642,8 +1642,11 @@ function setStatusLine(state, leftText, rightText) {
     const raw2 = getTeamName(t2.team);
     const logo1 = getTeamLogo(t1.team);
     const logo2 = getTeamLogo(t2.team);
-    const seed1 = getPreferredSeed(t1);
-    const seed2 = getPreferredSeed(t2);
+    const pageSeedMap = espnGameSeedCache[state.espnGameId] || {};
+    const pageSeed1 = pageSeedMap[getSeedDisplayKey(raw1)] || "";
+    const pageSeed2 = pageSeedMap[getSeedDisplayKey(raw2)] || "";
+    const seed1 = getPreferredSeed(t1) || pageSeed1;
+    const seed2 = getPreferredSeed(t2) || pageSeed2;
 
     setLogo(state.dom.teamALogoEl, logo1, raw1);
     setLogo(state.dom.teamBLogoEl, logo2, raw2);
@@ -1661,13 +1664,15 @@ function setStatusLine(state, leftText, rightText) {
 
     // Log initial seed capture
     console.log("[INITIAL SEED CAPTURE]", {
-      title: state.title,
-      raw1,
-      raw2,
-      seed1,
-      seed2,
-      seedMap: state.seedMap
-    });
+  title: state.title,
+  raw1,
+  raw2,
+  pageSeed1,
+  pageSeed2,
+  seed1,
+  seed2,
+  seedMap: state.seedMap
+});
 
     state.dom.teamALabelEl.textContent = state.teamOrange;
     state.dom.teamBLabelEl.textContent = state.teamBlue;
@@ -2420,6 +2425,7 @@ sectionsEl.innerHTML = "";
 allCardStates.length = 0;
 
     ESPN_BRACKET_SEEDS = await fetchEspnBracketSeeds();
+    Object.keys(espnGameSeedCache).forEach(function (key) { delete espnGameSeedCache[key]; });
 
     const espnResults = await Promise.all(getTournamentDates().map(fetchEspnGames));
     const allEspnGames = espnResults.flat();
@@ -2529,6 +2535,8 @@ console.log("[ROUNDS PRESENT]", roundsPresent);
       sectionsEl.appendChild(section.root);
 
       for (const espnGame of roundGames) {
+        await fetchEspnGamePageSeeds(espnGame.espnId);
+
         const dom = createCardDom();
         section.grid.appendChild(dom.root);
 
